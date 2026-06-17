@@ -40,7 +40,7 @@
       "scm/title": [
         {
           "command": "smartCommitMessage.generate",
-          "group": "navigation",
+          "group": "navigation@-10",
           "when": "scmProvider == git"
         }
       ]
