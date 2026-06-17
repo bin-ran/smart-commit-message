@@ -1,5 +1,5 @@
 {
-  "name": "binran-auto-commit",
+  "name": "smart-commit-message",
   "displayName": "%displayName%",
   "description": "%description%",
   "version": "0.0.1",
@@ -10,31 +10,28 @@
     "git",
     "commit",
     "ai",
-    "auto-commit",
+    "smart-commit-message",
     "deepseek"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/bin-ran/auto-commit.git"
+    "url": "https://github.com/bin-ran/smart-commit-message.git"
   },
   "bugs": {
-    "url": "https://github.com/bin-ran/auto-commit/issues"
+    "url": "https://github.com/bin-ran/smart-commit-message/issues"
   },
-  "homepage": "https://github.com/bin-ran/auto-commit#readme",
+  "homepage": "https://github.com/bin-ran/smart-commit-message#readme",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.120.0"
   },
   "categories": [
     "Other"
-  ],
-  "activationEvents": [
-    "onCommand:autoCommit.generate"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "autoCommit.generate",
+        "command": "smartCommitMessage.generate",
         "title": "%command.generate.title%",
         "icon": "$(sparkle)"
       }
@@ -42,7 +39,7 @@
     "menus": {
       "scm/title": [
         {
-          "command": "autoCommit.generate",
+          "command": "smartCommitMessage.generate",
           "group": "navigation",
           "when": "scmProvider == git"
         }
@@ -51,22 +48,22 @@
     "configuration": {
       "title": "%config.title%",
       "properties": {
-        "autoCommit.apiKey": {
+        "smartCommitMessage.apiKey": {
           "type": "string",
           "default": "",
           "description": "%config.apiKey.description%"
         },
-        "autoCommit.baseUrl": {
+        "smartCommitMessage.baseUrl": {
           "type": "string",
           "default": "https://api.deepseek.com",
           "description": "%config.baseUrl.description%"
         },
-        "autoCommit.model": {
+        "smartCommitMessage.model": {
           "type": "string",
           "default": "deepseek-v4-flash",
           "description": "%config.model.description%"
         },
-        "autoCommit.style": {
+        "smartCommitMessage.style": {
           "type": "string",
           "enum": [
             "conventional",
@@ -76,7 +73,7 @@
           "default": "conventional",
           "description": "%config.style.description%"
         },
-        "autoCommit.language": {
+        "smartCommitMessage.language": {
           "type": "string",
           "enum": [
             "English",
@@ -85,7 +82,7 @@
           "default": "Chinese",
           "description": "%config.language.description%"
         },
-        "autoCommit.customPrompt": {
+        "smartCommitMessage.customPrompt": {
           "type": "string",
           "default": "",
           "description": "%config.customPrompt.description%"
@@ -97,18 +94,13 @@
     "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "pnpm run compile && pnpm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "lint": "eslint src"
   },
   "devDependencies": {
-    "@types/vscode": "^1.74.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
-    "typescript-eslint": "^8.56.1",
-    "eslint": "^9.39.3",
-    "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "@types/node": "25.9.3",
+    "@types/vscode": "^1.120.0",
+    "eslint": "^10.5.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1"
   }
 }

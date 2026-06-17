@@ -1,4 +1,4 @@
-# Auto Commit
+# Smart Commit Message
 
 AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的 Commit Message。
 
@@ -13,7 +13,7 @@ AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的
 
 ## 安装
 
-1. 在 VS Code 扩展商店搜索 "Auto Commit"
+1. 在 VS Code 扩展商店搜索 "Smart Commit Message"
 2. 点击安装
 
 ## 使用方法
@@ -25,21 +25,21 @@ AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的
 
 ## 配置项
 
-在 VS Code Settings 中搜索 `Auto Commit` 进行配置：
+在 VS Code Settings 中搜索 `Smart Commit Message` 进行配置：
 
 | 配置项 | 说明 | 默认值 |
 |--------|------|--------|
-| `autoCommit.apiKey` | AI 服务的 API Key | - |
-| `autoCommit.baseUrl` | OpenAI 兼容格式的 API 基础地址 | `https://api.deepseek.com` |
-| `autoCommit.model` | 用于生成 Commit 的模型名称 | `deepseek-v4-flash` |
-| `autoCommit.style` | Commit 信息风格（conventional / simple / detailed） | `conventional` |
-| `autoCommit.language` | 生成 Commit 信息的语言（English / Chinese） | `Chinese` |
-| `autoCommit.customPrompt` | 追加在风格模板后的自定义 System Prompt | - |
+| `smartCommitMessage.apiKey` | AI 服务的 API Key | - |
+| `smartCommitMessage.baseUrl` | OpenAI 兼容格式的 API 基础地址 | `https://api.deepseek.com` |
+| `smartCommitMessage.model` | 用于生成 Commit 的模型名称 | `deepseek-v4-flash` |
+| `smartCommitMessage.style` | Commit 信息风格（conventional / simple / detailed） | `conventional` |
+| `smartCommitMessage.language` | 生成 Commit 信息的语言（English / Chinese） | `Chinese` |
+| `smartCommitMessage.customPrompt` | 追加在风格模板后的自定义 System Prompt | - |
 
 ## 快速开始（DeepSeek）
 
 1. 前往 [DeepSeek 开放平台](https://platform.deepseek.com) 获取 API Key
-2. 在 VS Code Settings 中设置 `autoCommit.apiKey`
+2. 在 VS Code Settings 中设置 `smartCommitMessage.apiKey`
 3. 默认已配置 DeepSeek 的 baseUrl 和模型，直接点击 sparkle 按钮即可使用
 
 ## Commit 风格说明
@@ -51,8 +51,8 @@ AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的
 ## 本地开发
 
 ```bash
-git clone https://github.com/bin-ran/auto-commit.git
-cd auto-commit
+git clone https://github.com/bin-ran/smart-commit-message.git
+cd smart-commit-message
 npm install
 # 按 F5 启动 Extension Host 调试
 ```

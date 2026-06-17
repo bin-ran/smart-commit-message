@@ -11,7 +11,7 @@ export interface Config {
 }
 
 export function getConfig(): Config {
-  const config = vscode.workspace.getConfiguration('autoCommit');
+  const config = vscode.workspace.getConfiguration('smartCommitMessage');
   return {
     apiKey: config.get<string>('apiKey', ''),
     baseUrl: config.get<string>('baseUrl', 'https://api.deepseek.com'),

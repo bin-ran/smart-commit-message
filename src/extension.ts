@@ -5,7 +5,7 @@ import { generateCommitMessage } from './ai';
 import { t } from './i18n';
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('autoCommit.generate', async () => {
+  const disposable = vscode.commands.registerCommand('smartCommitMessage.generate', async () => {
     const cfg = getConfig();
     const error = validateConfig(cfg);
     if (error) {
@@ -53,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
       repo.inputBox.value = message;
       vscode.window.showInformationMessage(t.success());
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Auto Commit: ${err.message || t.unknownError()}`);
+      vscode.window.showErrorMessage(`Smart Commit Message: ${err.message || t.unknownError()}`);
     }
   });
 

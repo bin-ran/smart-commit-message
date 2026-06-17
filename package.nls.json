@@ -1,8 +1,8 @@
 {
-  "displayName": "Binran Auto Commit",
+  "displayName": "Smart Commit Message",
   "description": "AI-powered automatic git commit message generation",
   "command.generate.title": "Generate Commit Message",
-  "config.title": "Auto Commit",
+  "config.title": "Smart Commit Message",
   "config.apiKey.description": "API key for the AI service",
   "config.baseUrl.description": "Base URL for the OpenAI-compatible API",
   "config.model.description": "Model name to use for generation",
