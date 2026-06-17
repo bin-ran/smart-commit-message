@@ -1,0 +1,12 @@
+{
+  "displayName": "Binran Auto Commit",
+  "description": "AI 自动生成 Git Commit Message",
+  "command.generate.title": "生成 Commit Message",
+  "config.title": "Auto Commit",
+  "config.apiKey.description": "AI 服务的 API Key",
+  "config.baseUrl.description": "OpenAI 兼容格式的 API 基础地址",
+  "config.model.description": "用于生成 Commit 的模型名称",
+  "config.style.description": "Commit 信息风格",
+  "config.language.description": "生成 Commit 信息的语言",
+  "config.customPrompt.description": "追加在风格模板后的自定义 System Prompt"
+}

@@ -1,0 +1,12 @@
+{
+  "displayName": "Binran Auto Commit",
+  "description": "AI-powered automatic git commit message generation",
+  "command.generate.title": "Generate Commit Message",
+  "config.title": "Auto Commit",
+  "config.apiKey.description": "API key for the AI service",
+  "config.baseUrl.description": "Base URL for the OpenAI-compatible API",
+  "config.model.description": "Model name to use for generation",
+  "config.style.description": "Commit message style",
+  "config.language.description": "Language for the generated commit message",
+  "config.customPrompt.description": "Custom system prompt appended to the style template"
+}

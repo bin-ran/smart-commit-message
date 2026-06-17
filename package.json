@@ -1,0 +1,114 @@
+{
+  "name": "binran-auto-commit",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "0.0.1",
+  "publisher": "binran",
+  "license": "MIT",
+  "icon": "icon.ico",
+  "keywords": [
+    "git",
+    "commit",
+    "ai",
+    "auto-commit",
+    "deepseek"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bin-ran/auto-commit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bin-ran/auto-commit/issues"
+  },
+  "homepage": "https://github.com/bin-ran/auto-commit#readme",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:autoCommit.generate"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "autoCommit.generate",
+        "title": "%command.generate.title%",
+        "icon": "$(sparkle)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "autoCommit.generate",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "%config.title%",
+      "properties": {
+        "autoCommit.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "%config.apiKey.description%"
+        },
+        "autoCommit.baseUrl": {
+          "type": "string",
+          "default": "https://api.deepseek.com",
+          "description": "%config.baseUrl.description%"
+        },
+        "autoCommit.model": {
+          "type": "string",
+          "default": "deepseek-v4-flash",
+          "description": "%config.model.description%"
+        },
+        "autoCommit.style": {
+          "type": "string",
+          "enum": [
+            "conventional",
+            "simple",
+            "detailed"
+          ],
+          "default": "conventional",
+          "description": "%config.style.description%"
+        },
+        "autoCommit.language": {
+          "type": "string",
+          "enum": [
+            "English",
+            "Chinese"
+          ],
+          "default": "Chinese",
+          "description": "%config.language.description%"
+        },
+        "autoCommit.customPrompt": {
+          "type": "string",
+          "default": "",
+          "description": "%config.customPrompt.description%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.56.1",
+    "eslint": "^9.39.3",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
