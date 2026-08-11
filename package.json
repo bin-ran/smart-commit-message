@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/bin-ran/smart-commit-message#readme",
   "engines": {
-    "vscode": "^1.120.0"
+    "vscode": "^1.125.0"
   },
   "categories": [
     "Other"
@@ -98,9 +98,9 @@
   },
   "devDependencies": {
     "@types/node": "25.9.3",
-    "@types/vscode": "^1.120.0",
-    "eslint": "^10.5.0",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.1"
+    "@types/vscode": "^1.125.0",
+    "eslint": "^10.8.1",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.67.0"
   }
 }
