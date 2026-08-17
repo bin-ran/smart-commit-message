@@ -1,8 +1,17 @@
 import * as vscode from 'vscode';
 import { getConfig, validateConfig } from './config';
-import { getGitRepositoryPath, getDiff, truncateDiff } from './git';
+import { getGitRepositoryPath, getRepoRoot, getDiff, truncateDiff, isSamePath } from './git';
 import { generateCommitMessage } from './ai';
 import { t } from './i18n';
+
+interface GitRepository {
+  rootUri: vscode.Uri;
+  inputBox: { value: string };
+}
+
+interface GitApi {
+  repositories: GitRepository[];
+}
 
 export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand('smartCommitMessage.generate', async () => {
@@ -19,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    const repoRoot = getRepoRoot(repoPath);
     const diff = getDiff(repoPath);
     if (!diff) {
       vscode.window.showInformationMessage(t.noChanges());
@@ -43,8 +53,10 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      const git = gitExtension.exports.getAPI(1);
-      const repo = git.repositories[0];
+      const git = gitExtension.exports.getAPI(1) as GitApi;
+      const repo =
+        (repoRoot && git.repositories.find((r) => isSamePath(r.rootUri.fsPath, repoRoot))) ||
+        git.repositories[0];
       if (!repo) {
         vscode.window.showErrorMessage(t.noGitRepo());
         return;

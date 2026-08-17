@@ -10,6 +10,19 @@ export function getGitRepositoryPath(): string | undefined {
   return workspaceFolders[0].uri.fsPath;
 }
 
+export function getRepoRoot(cwd: string): string | undefined {
+  try {
+    return execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf-8' }).trim();
+  } catch {
+    return undefined;
+  }
+}
+
+export function isSamePath(a: string, b: string): boolean {
+  const resolve = (p: string) => (process.platform === 'win32' ? path.resolve(p).toLowerCase() : path.resolve(p));
+  return resolve(a) === resolve(b);
+}
+
 export function getDiff(cwd: string): string {
   try {
     let diff = execSync('git diff --cached', { cwd, encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
