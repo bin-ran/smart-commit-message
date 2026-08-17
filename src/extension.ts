@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getConfig, validateConfig } from './config';
-import { getGitRepositoryPath, getRepoRoot, getDiff, truncateDiff, isSamePath } from './git';
+import { getDiff, truncateDiff } from './git';
 import { generateCommitMessage } from './ai';
 import { t } from './i18n';
 
@@ -11,10 +11,31 @@ interface GitRepository {
 
 interface GitApi {
   repositories: GitRepository[];
+  getRepository(uri: vscode.Uri): GitRepository | undefined;
+}
+
+// VS Code 会把 scm/title 菜单渲染到每个仓库的标题栏，点击时将该仓库的
+// SourceControl 作为第一个参数 ctx 传入命令。通过其 rootUri 用 git API
+// 直接解析对应仓库，避免依赖 git.repositories 的顺序。
+function getTargetRepository(git: GitApi, ctx?: { rootUri?: vscode.Uri }): GitRepository | undefined {
+  if (ctx?.rootUri) {
+    const repo = git.getRepository(ctx.rootUri);
+    if (repo) {
+      return repo;
+    }
+  }
+
+  const editor = vscode.window.activeTextEditor;
+  const editorRepo = editor ? git.getRepository(editor.document.uri) : undefined;
+  if (editorRepo) {
+    return editorRepo;
+  }
+
+  return git.repositories[0];
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('smartCommitMessage.generate', async () => {
+  const disposable = vscode.commands.registerCommand('smartCommitMessage.generate', async (ctx?: { rootUri?: vscode.Uri }) => {
     const cfg = getConfig();
     const error = validateConfig(cfg);
     if (error) {
@@ -22,22 +43,28 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    const repoPath = getGitRepositoryPath();
-    if (!repoPath) {
-      vscode.window.showErrorMessage(t.noWorkspace());
+    const gitExtension = vscode.extensions.getExtension('vscode.git');
+    if (!gitExtension) {
+      vscode.window.showErrorMessage(t.noGitExtension());
       return;
     }
-
-    const repoRoot = getRepoRoot(repoPath);
-    const diff = getDiff(repoPath);
-    if (!diff) {
-      vscode.window.showInformationMessage(t.noChanges());
-      return;
-    }
-
-    const truncatedDiff = truncateDiff(diff);
 
     try {
+      const git = gitExtension.exports.getAPI(1) as GitApi;
+      const repo = getTargetRepository(git, ctx);
+      if (!repo) {
+        vscode.window.showErrorMessage(t.noGitRepo());
+        return;
+      }
+
+      const diff = getDiff(repo.rootUri.fsPath);
+      if (!diff) {
+        vscode.window.showInformationMessage(t.noChanges());
+        return;
+      }
+
+      const truncatedDiff = truncateDiff(diff);
+
       const message = await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -46,21 +73,6 @@ export function activate(context: vscode.ExtensionContext) {
         },
         () => generateCommitMessage(truncatedDiff, cfg)
       );
-
-      const gitExtension = vscode.extensions.getExtension('vscode.git');
-      if (!gitExtension) {
-        vscode.window.showErrorMessage(t.noGitExtension());
-        return;
-      }
-
-      const git = gitExtension.exports.getAPI(1) as GitApi;
-      const repo =
-        (repoRoot && git.repositories.find((r) => isSamePath(r.rootUri.fsPath, repoRoot))) ||
-        git.repositories[0];
-      if (!repo) {
-        vscode.window.showErrorMessage(t.noGitRepo());
-        return;
-      }
 
       repo.inputBox.value = message;
       vscode.window.showInformationMessage(t.success());
