@@ -1,16 +1,34 @@
-import * as https from 'https';
-import * as http from 'http';
-import { URL } from 'url';
 import type { Config } from './config';
+
+const REQUEST_TIMEOUT_MS = 60_000;
+
+export type ApiFailure = 'timeout' | 'cancelled' | 'http' | 'invalid-response' | 'empty-response' | 'network';
+
+export class ApiError extends Error {
+  constructor(readonly kind: ApiFailure, readonly detail: string) {
+    super(detail);
+    this.name = 'ApiError';
+  }
+}
+
+export interface GenerateOptions {
+  signal?: AbortSignal;
+  timeoutMs?: number;
+}
+
+interface ChatMessageContentPart {
+  type?: string;
+  text?: string;
+}
 
 interface ChatCompletionResponse {
   choices?: Array<{
     message?: {
-      content?: string;
+      content?: string | ChatMessageContentPart[];
     };
   }>;
   error?: {
-    message: string;
+    message?: string;
   };
 }
 
@@ -32,9 +50,46 @@ Keep the description under 72 characters. Only output the commit message, no exp
   return prompt;
 }
 
-export async function generateCommitMessage(diff: string, cfg: Config): Promise<string> {
-  const url = new URL(cfg.baseUrl);
-  const isHttps = url.protocol === 'https:';
+// 保留 baseUrl 上已有的路径（和查询串，Azure 这类需要 ?api-version= 的网关要用），
+// 只补上 /chat/completions。
+function buildEndpoint(baseUrl: string): string {
+  const url = new URL(baseUrl);
+  url.pathname = `${url.pathname.replace(/\/+$/, '')}/chat/completions`;
+  return url.toString();
+}
+
+function readContent(payload: ChatCompletionResponse): string {
+  const content = payload.choices?.[0]?.message?.content;
+  if (typeof content === 'string') {
+    return content.trim();
+  }
+  if (Array.isArray(content)) {
+    return content.map((part) => (typeof part?.text === 'string' ? part.text : '')).join('').trim();
+  }
+  return '';
+}
+
+function toTransportError(err: unknown, timeoutSignal: AbortSignal): ApiError {
+  if (timeoutSignal.aborted) {
+    return new ApiError('timeout', 'request timed out');
+  }
+  if (err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')) {
+    return new ApiError('cancelled', 'request cancelled');
+  }
+
+  // Node 的 fetch 只报 “fetch failed”，真正原因在 cause 里（如 ECONNREFUSED）
+  const cause = err instanceof Error ? (err as { cause?: unknown }).cause : undefined;
+  const detail = cause instanceof Error ? `${err instanceof Error ? err.message : ''}: ${cause.message}` : toMessage(err);
+  return new ApiError('network', detail);
+}
+
+function toMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+export async function generateCommitMessage(diff: string, cfg: Config, options: GenerateOptions = {}): Promise<string> {
+  const timeoutSignal = AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS);
+  const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
 
   const postData = JSON.stringify({
     model: cfg.model,
@@ -45,44 +100,41 @@ export async function generateCommitMessage(diff: string, cfg: Config): Promise<
     temperature: 0.3,
   });
 
-  const options = {
-    hostname: url.hostname,
-    port: url.port || (isHttps ? 443 : 80),
-    path: `${url.pathname}/chat/completions`.replace(/\/+/g, '/'),
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${cfg.apiKey}`,
-      'Content-Length': Buffer.byteLength(postData),
-    },
-  };
-
-  return new Promise((resolve, reject) => {
-    const client = isHttps ? https : http;
-    const req = client.request(options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        try {
-          const json: ChatCompletionResponse = JSON.parse(data);
-          if (json.error) {
-            reject(new Error(json.error.message));
-            return;
-          }
-          const message = json.choices?.[0]?.message?.content?.trim();
-          if (!message) {
-            reject(new Error('Empty response from AI service'));
-            return;
-          }
-          resolve(message);
-        } catch (e) {
-          reject(new Error(`Failed to parse response: ${e}`));
-        }
-      });
+  let response: Response;
+  try {
+    response = await fetch(buildEndpoint(cfg.baseUrl), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cfg.apiKey}`,
+      },
+      body: postData,
+      signal,
     });
+  } catch (err) {
+    throw toTransportError(err, timeoutSignal);
+  }
 
-    req.on('error', (err) => reject(new Error(`Request failed: ${err.message}`)));
-    req.write(postData);
-    req.end();
-  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    const suffix = body.trim() ? ` - ${body.trim().slice(0, 300)}` : '';
+    throw new ApiError('http', `HTTP ${response.status} ${response.statusText}${suffix}`);
+  }
+
+  let payload: ChatCompletionResponse;
+  try {
+    payload = (await response.json()) as ChatCompletionResponse;
+  } catch {
+    throw new ApiError('invalid-response', 'response body is not valid JSON');
+  }
+
+  if (payload.error?.message) {
+    throw new ApiError('http', payload.error.message);
+  }
+
+  const message = readContent(payload);
+  if (!message) {
+    throw new ApiError('empty-response', 'no message content in response');
+  }
+  return message;
 }

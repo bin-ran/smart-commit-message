@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { clearApiKey, getApiKey, getConfig, promptForApiKey, validateConfig } from './config';
 import { getDiff, GitError, truncateDiff } from './git';
-import { generateCommitMessage } from './ai';
+import { ApiError, generateCommitMessage } from './ai';
 import { t } from './i18n';
 
 interface GitRepository {
@@ -42,7 +42,26 @@ function toErrorText(err: unknown): string {
 }
 
 function describeError(err: unknown): string {
-  return err instanceof GitError ? t.gitFailed(err.detail) : toErrorText(err);
+  if (err instanceof GitError) {
+    return t.gitFailed(err.detail);
+  }
+  if (err instanceof ApiError) {
+    switch (err.kind) {
+      case 'timeout':
+        return t.requestTimeout();
+      case 'http':
+        return t.requestFailed(err.detail);
+      case 'invalid-response':
+        return t.invalidResponse();
+      case 'empty-response':
+        return t.emptyResponse();
+      case 'cancelled':
+        return t.generationCancelled();
+      default:
+        return t.networkFailed(err.detail);
+    }
+  }
+  return toErrorText(err);
 }
 
 async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vscode.Uri }): Promise<void> {
@@ -82,18 +101,30 @@ async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vsco
       return;
     }
 
+    const controller = new AbortController();
     const message = await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
         title: t.generating(),
-        cancellable: false,
+        cancellable: true,
       },
-      () => generateCommitMessage(truncateDiff(diff, cfg.maxDiffChars), cfg)
+      async (_progress, token) => {
+        const subscription = token.onCancellationRequested(() => controller.abort());
+        try {
+          return await generateCommitMessage(truncateDiff(diff, cfg.maxDiffChars), cfg, { signal: controller.signal });
+        } finally {
+          subscription.dispose();
+        }
+      }
     );
 
     repo.inputBox.value = message;
     vscode.window.showInformationMessage(t.success());
   } catch (err) {
+    if (err instanceof ApiError && err.kind === 'cancelled') {
+      vscode.window.showInformationMessage(t.generationCancelled());
+      return;
+    }
     vscode.window.showErrorMessage(`Smart Commit Message: ${describeError(err)}`);
   }
 }

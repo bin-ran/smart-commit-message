@@ -55,6 +55,21 @@ export const t = {
   requestTimeout: () => isChinese()
     ? 'Smart Commit Message：请求 AI 服务超时（60 秒），请检查网络或更换 baseUrl。'
     : 'Smart Commit Message: The AI request timed out (60s). Check your network or base URL.',
+  requestFailed: (detail: string) => isChinese()
+    ? `Smart Commit Message：AI 服务返回错误。${detail}`
+    : `Smart Commit Message: The AI service returned an error. ${detail}`,
+  invalidResponse: () => isChinese()
+    ? 'Smart Commit Message：AI 服务返回的内容无法解析为 JSON。'
+    : 'Smart Commit Message: The AI service response could not be parsed as JSON.',
+  emptyResponse: () => isChinese()
+    ? 'Smart Commit Message：AI 服务返回了空的 Commit 信息。'
+    : 'Smart Commit Message: The AI service returned an empty commit message.',
+  networkFailed: (detail: string) => isChinese()
+    ? `Smart Commit Message：请求 AI 服务失败。${detail}`
+    : `Smart Commit Message: Failed to reach the AI service. ${detail}`,
+  generationCancelled: () => isChinese()
+    ? 'Smart Commit Message：已取消生成。'
+    : 'Smart Commit Message: Generation cancelled.',
   success: () => isChinese()
     ? 'Smart Commit Message：Commit 信息已生成！'
     : 'Smart Commit Message: Commit message generated!',
