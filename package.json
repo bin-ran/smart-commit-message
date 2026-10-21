@@ -5,6 +5,7 @@
   "version": "0.1.3",
   "publisher": "binran",
   "license": "MIT",
+  "packageManager": "pnpm@12.14.0",
   "icon": "icon.ico",
   "keywords": [
     "git",
@@ -25,7 +26,7 @@
     "vscode": "^1.140.0"
   },
   "categories": [
-    "Other"
+    "SCM Providers"
   ],
   "main": "./out/extension.js",
   "activationEvents": [

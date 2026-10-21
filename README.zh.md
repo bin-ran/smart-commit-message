@@ -66,18 +66,19 @@ API Key 通过命令面板运行 **「Smart Commit Message: 设置 API Key」** 
 ## 本地开发
 
 ```bash
-git clone https://github.com/bin-ran/smart-commit-message.git
-cd smart-commit-message
-npm install
-# 按 F5 启动 Extension Host 调试
+pnpm install
+pnpm run compile   # TypeScript 构建（输出到 out/）
+pnpm run lint      # ESLint（--max-warnings 0）
+pnpm test          # 构建 + node:test 单测
 ```
+
+按 F5 启动 Extension Host 调试。
 
 ## 发布
 
 ```bash
-npm install -g @vscode/vsce
-vsce package   # 打包
-vsce publish   # 发布
+pnpm dlx @vscode/vsce package   # 打包
+pnpm dlx @vscode/vsce publish   # 发布
 ```
 
 ## License

@@ -66,16 +66,17 @@ Use `Smart Commit Message: Clear API Key` to remove the stored key.
 ## Development & Release
 
 ```bash
-git clone https://github.com/bin-ran/smart-commit-message.git
-cd smart-commit-message
-npm install
-# Press F5 to launch Extension Host debugging
+pnpm install
+pnpm run compile   # TypeScript build (out/)
+pnpm run lint      # ESLint with --max-warnings 0
+pnpm test          # Build + node:test suite
 ```
 
+Press F5 to launch Extension Host debugging.
+
 ```bash
-npm install -g @vscode/vsce
-vsce package   # Package
-vsce publish   # Publish
+pnpm dlx @vscode/vsce package   # Package
+pnpm dlx @vscode/vsce publish   # Publish
 ```
 
 ## License
