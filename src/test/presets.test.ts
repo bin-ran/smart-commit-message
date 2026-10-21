@@ -17,7 +17,7 @@ test('findProviderByBaseUrl 对未知地址回落到自定义预设', () => {
 test('resolveProviderSelection 返回预设的 baseUrl 与首个候选模型', () => {
   assert.deepEqual(resolveProviderSelection('deepseek'), {
     baseUrl: 'https://api.deepseek.com',
-    model: 'deepseek-v4-flash',
+    model: 'deepseek-flash',
   });
   assert.deepEqual(resolveProviderSelection('mimo'), {
     baseUrl: 'https://api.xiaomimimo.com/v1',

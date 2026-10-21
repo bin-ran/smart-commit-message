@@ -41,7 +41,7 @@ API Key 通过命令面板运行 **「Smart Commit Message: 设置 API Key」** 
 | `smartCommitMessage.providers` | 各服务商保存的 baseUrl/model，按槽位存储（由配置面板维护） | `{}` |
 | `smartCommitMessage.defaultProvider` | 生成 Commit 时使用的服务商槽位 | - |
 | `smartCommitMessage.baseUrl` | 尚未保存任何服务商时的备用 Base URL（machine 级，非 localhost 必须是 https） | `https://api.deepseek.com` |
-| `smartCommitMessage.model` | 尚未保存任何服务商时的备用模型（machine 级） | `deepseek-v4-flash` |
+| `smartCommitMessage.model` | 尚未保存任何服务商时的备用模型（machine 级） | `deepseek-flash` |
 | `smartCommitMessage.style` | Commit 信息风格（conventional / simple / detailed） | `conventional` |
 | `smartCommitMessage.language` | 生成 Commit 信息的语言（English / Chinese），未设置时跟随 VS Code 界面语言 | - |
 | `smartCommitMessage.customPrompt` | 追加在风格模板后的自定义 System Prompt | - |
@@ -78,7 +78,7 @@ API Key 按服务商分别保存在 VS Code SecretStorage 中（DeepSeek / GLM /
   "exportedAt": "2026-01-01T00:00:00.000Z",
   "settings": {
     "baseUrl": "https://api.deepseek.com",
-    "model": "deepseek-v4-flash",
+    "model": "deepseek-flash",
     "style": "conventional",
     "language": "Chinese",
     "maxDiffChars": 8000,

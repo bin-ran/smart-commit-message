@@ -41,7 +41,7 @@ Other settings can be searched in VS Code Settings:
 | `smartCommitMessage.providers` | Per-provider saved baseUrl/model, keyed by provider slot (managed by the configuration panel) | `{}` |
 | `smartCommitMessage.defaultProvider` | Provider slot used for commit generation | - |
 | `smartCommitMessage.baseUrl` | Fallback base URL used before any provider is saved (machine scope, must be https unless localhost) | `https://api.deepseek.com` |
-| `smartCommitMessage.model` | Fallback model name used before any provider is saved (machine scope) | `deepseek-v4-flash` |
+| `smartCommitMessage.model` | Fallback model name used before any provider is saved (machine scope) | `deepseek-flash` |
 | `smartCommitMessage.style` | Commit message style (conventional / simple / detailed) | `conventional` |
 | `smartCommitMessage.language` | Language for generated commits (English / Chinese), follows the VS Code display language when unset | - |
 | `smartCommitMessage.customPrompt` | Custom system prompt appended after the style template | - |
@@ -78,7 +78,7 @@ Use **"Export Configuration"** / **"Import Configuration"** from the Command Pal
   "exportedAt": "2026-01-01T00:00:00.000Z",
   "settings": {
     "baseUrl": "https://api.deepseek.com",
-    "model": "deepseek-v4-flash",
+    "model": "deepseek-flash",
     "style": "conventional",
     "language": "Chinese",
     "maxDiffChars": 8000,

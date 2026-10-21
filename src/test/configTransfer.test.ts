@@ -4,7 +4,7 @@ import { buildTransferFile, parseTransferFile, TRANSFER_VERSION, type TransferSe
 
 const settings: TransferSettings = {
   baseUrl: 'https://api.deepseek.com',
-  model: 'deepseek-v4-flash',
+  model: 'deepseek-flash',
   style: 'conventional',
   language: 'Chinese',
   maxDiffChars: 8000,

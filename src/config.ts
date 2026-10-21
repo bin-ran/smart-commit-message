@@ -6,7 +6,7 @@ import { normalizeProviderMap, resolveActiveProvider, upsertProviderConfig, type
 
 export const CONFIG_DEFAULTS = {
   baseUrl: 'https://api.deepseek.com',
-  model: 'deepseek-v4-flash',
+  model: 'deepseek-flash',
   style: 'conventional' as const,
   maxDiffChars: DEFAULT_MAX_DIFF_CHARS,
 };

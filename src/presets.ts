@@ -12,7 +12,7 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
     id: 'deepseek',
     label: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com',
-    models: ['deepseek-v4-flash', 'deepseek-chat', 'deepseek-reasoner'],
+    models: ['deepseek-flash', 'deepseek-chat', 'deepseek-reasoner'],
   },
   {
     id: 'glm',

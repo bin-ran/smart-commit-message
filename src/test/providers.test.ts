@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import * as assert from 'node:assert/strict';
 import { findProviderConfigForBaseUrl, normalizeProviderMap, resolveActiveProvider, upsertProviderConfig } from '../providers';
 
-const fallback = { baseUrl: 'https://api.deepseek.com', model: 'deepseek-v4-flash' };
+const fallback = { baseUrl: 'https://api.deepseek.com', model: 'deepseek-flash' };
 
 test('normalizeProviderMap 丢弃残缺条目', () => {
   const map = normalizeProviderMap({

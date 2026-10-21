@@ -104,7 +104,7 @@
         },
         "smartCommitMessage.model": {
           "type": "string",
-          "default": "deepseek-v4-flash",
+          "default": "deepseek-flash",
           "scope": "machine",
           "description": "%config.model.description%"
         },
