@@ -34,15 +34,16 @@ export const t = {
   invalidMaxDiffChars: () => isChinese()
     ? 'Smart Commit Message：maxDiffChars 必须是不小于 100 的数字。'
     : 'Smart Commit Message: maxDiffChars must be a number no less than 100.',
-  noWorkspace: () => isChinese()
-    ? 'Smart Commit Message：未找到工作区文件夹。'
-    : 'Smart Commit Message: No workspace folder found.',
   noChanges: () => isChinese()
     ? 'Smart Commit Message：未检测到代码改动。'
     : 'Smart Commit Message: No changes detected.',
   generating: () => isChinese()
     ? '正在生成 Commit 信息...'
     : 'Generating commit message...',
+  confirmOverwrite: () => isChinese()
+    ? 'Smart Commit Message：Commit 输入框已有内容，生成后将覆盖。是否继续？'
+    : 'Smart Commit Message: The commit input box already has content that will be overwritten. Continue?',
+  actionOverwrite: () => isChinese() ? '覆盖并生成' : 'Overwrite and generate',
   noGitExtension: () => isChinese()
     ? 'Smart Commit Message：未找到 Git 扩展。'
     : 'Smart Commit Message: Git extension not found.',

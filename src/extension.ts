@@ -41,6 +41,12 @@ function toErrorText(err: unknown): string {
   return typeof err === 'string' ? err : t.unknownError();
 }
 
+// 生成会直接覆盖输入框内容，已有草稿时先确认，避免用户手写的内容丢掉
+async function confirmOverwriteDraft(): Promise<boolean> {
+  const action = await vscode.window.showWarningMessage(t.confirmOverwrite(), { modal: true }, t.actionOverwrite());
+  return action === t.actionOverwrite();
+}
+
 function describeError(err: unknown): string {
   if (err instanceof GitError) {
     return t.gitFailed(err.detail);
@@ -88,10 +94,19 @@ async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vsco
   }
 
   try {
+    // 未激活时 exports 为空，先 activate 再取 API
+    if (!gitExtension.isActive) {
+      await gitExtension.activate();
+    }
     const git = gitExtension.exports.getAPI(1) as GitApi;
     const repo = getTargetRepository(git, ctx);
     if (!repo) {
       vscode.window.showErrorMessage(t.noGitRepo());
+      return;
+    }
+
+    const draft = repo.inputBox.value.trim();
+    if (draft && !(await confirmOverwriteDraft())) {
       return;
     }
 
