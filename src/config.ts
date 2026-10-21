@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { inferLanguage, t } from './i18n';
 import { DEFAULT_MAX_DIFF_CHARS } from './git';
+import { checkBaseUrl } from './url';
 
 export const API_KEY_SECRET = 'smartCommitMessage.apiKey';
 const LEGACY_API_KEY_SETTING = 'apiKey';
-const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
 
 export interface Config {
   apiKey: string;
@@ -83,23 +83,11 @@ export function getConfig(apiKey: string): Config {
 
 // baseUrl 走 https；只有回环地址允许明文 http，避免 API Key 在网络上裸奔。
 export function validateBaseUrl(baseUrl: string): string | undefined {
-  let url: URL;
-  try {
-    url = new URL(baseUrl);
-  } catch {
-    return t.invalidBaseUrl(baseUrl);
-  }
-
-  if (url.username || url.password) {
-    return t.invalidBaseUrl(baseUrl);
-  }
-  if (url.protocol === 'https:') {
+  const problem = checkBaseUrl(baseUrl);
+  if (!problem) {
     return undefined;
   }
-  if (url.protocol === 'http:' && LOOPBACK_HOSTS.includes(url.hostname)) {
-    return undefined;
-  }
-  return t.insecureBaseUrl(baseUrl);
+  return problem.kind === 'invalid' ? t.invalidBaseUrl(problem.baseUrl) : t.insecureBaseUrl(problem.baseUrl);
 }
 
 export function validateConfig(cfg: Config): string | undefined {

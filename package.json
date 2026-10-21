@@ -123,7 +123,8 @@
     "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src"
+    "lint": "eslint src --max-warnings 0",
+    "test": "pnpm run compile && node --test \"out/test/*.test.js\""
   },
   "devDependencies": {
     "@types/node": "25.9.3",
