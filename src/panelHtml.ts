@@ -281,6 +281,8 @@ const SCRIPT = `
 
   byId('baseUrl').addEventListener('change', requestKeyState);
   byId('clearKey').addEventListener('click', () => post('clearKey', { baseUrl: byId('baseUrl').value }));
+  byId('importConfig').addEventListener('click', () => post('importConfig'));
+  byId('exportConfig').addEventListener('click', () => post('exportConfig'));
   byId('cancel').addEventListener('click', () => post('close'));
 
   document.addEventListener('keydown', (event) => {
@@ -390,6 +392,8 @@ export function renderPanelHtml(webview: vscode.Webview): string {
 <footer>
   <div class="inner">
     <button id="test" class="secondary" type="button" data-i18n="test"></button>
+    <button id="importConfig" class="secondary" type="button" data-i18n="importConfig"></button>
+    <button id="exportConfig" class="secondary" type="button" data-i18n="exportConfig"></button>
     <span class="status" id="status"></span>
     <span class="spacer"></span>
     <button id="cancel" class="secondary" type="button" data-i18n="cancel"></button>

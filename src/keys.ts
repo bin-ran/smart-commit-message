@@ -89,6 +89,11 @@ export async function listApiKeySlots(context: vscode.ExtensionContext): Promise
   return Object.keys(await readKeyMap(context)).sort();
 }
 
+// 导出配置时使用，调用方负责不把明文写进日志
+export async function listApiKeys(context: vscode.ExtensionContext): Promise<KeyMap> {
+  return { ...(await readKeyMap(context)) };
+}
+
 export async function setApiKeyFor(context: vscode.ExtensionContext, baseUrl: string, apiKey: string): Promise<void> {
   const trimmed = apiKey.trim();
   if (!trimmed) {

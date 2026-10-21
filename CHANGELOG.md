@@ -9,6 +9,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
 
 - Configuration panel (webview) with provider presets for DeepSeek, GLM, Qwen and MiMo, model list fetching, inline validation and a connection test
+- Import / export of the extension configuration, with API keys excluded by default and field validation on import
 - `GET /models` support and a connection probe that falls back to a minimal chat request
 - `smartCommitMessage.maxDiffChars` setting to control how much diff is sent to the AI service
 - `Set API Key` / `Clear API Key` commands

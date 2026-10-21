@@ -62,6 +62,29 @@ API Key 按服务商分别保存在 VS Code SecretStorage 中（DeepSeek / GLM /
 - 生成的 diff（含未跟踪的新文件，二进制/超大文件会跳过）会发送到配置的 API 地址。
 - 扩展在受限模式（不受信任的工作区）下不启用：它会把代码发送到远端服务。
 
+## 导入 / 导出配置
+
+在命令面板运行 **「导出配置」/「导入配置」**，或使用配置面板底部的按钮，即可在多台机器之间迁移设置。
+
+- 导出的 JSON 包含 `baseUrl`、`model`、`style`、`language`、`maxDiffChars`、`customPrompt`。API Key **默认不导出**；选择包含时会以明文写入文件，因此会先确认。
+- 导入时逐项校验（Base URL 必须 https、风格/语言取值白名单、`maxDiffChars` 为数字），未识别的字段一律忽略，手工改过或来源不明的文件无法注入任意配置。
+- 文件里带 Key 时可选「导入 Key」或「仅导入设置」；未知槽位的 Key 会被跳过。
+
+```json
+{
+  "version": 1,
+  "exportedAt": "2026-01-01T00:00:00.000Z",
+  "settings": {
+    "baseUrl": "https://api.deepseek.com",
+    "model": "deepseek-v4-flash",
+    "style": "conventional",
+    "language": "Chinese",
+    "maxDiffChars": 8000,
+    "customPrompt": ""
+  }
+}
+```
+
 ## Commit 风格说明
 
 - **conventional** — 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范，格式如 `feat(scope): description`

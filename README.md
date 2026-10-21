@@ -62,6 +62,29 @@ Other presets: GLM (`https://open.bigmodel.cn/api/paas/v4`), Qwen (`https://dash
 - The generated diff (including new untracked files, binary/large files omitted) is sent to the configured API endpoint.
 - The extension is disabled in restricted mode (untrusted workspaces) since it sends code to a remote service.
 
+## Import / Export
+
+Use **"Export Configuration"** / **"Import Configuration"** from the Command Palette, or the buttons at the bottom of the configuration panel, to move settings between machines.
+
+- The exported JSON contains `baseUrl`, `model`, `style`, `language`, `maxDiffChars` and `customPrompt`. API keys are **excluded by default**; including them writes plain text into the file, so you are asked to confirm.
+- Import validates every field (https-only base URLs, known style/language values, numeric `maxDiffChars`) and ignores unknown keys, so a hand-edited or foreign file cannot inject arbitrary settings.
+- When the file contains keys you can choose to import them or apply settings only; keys for unknown slots are skipped.
+
+```json
+{
+  "version": 1,
+  "exportedAt": "2026-01-01T00:00:00.000Z",
+  "settings": {
+    "baseUrl": "https://api.deepseek.com",
+    "model": "deepseek-v4-flash",
+    "style": "conventional",
+    "language": "Chinese",
+    "maxDiffChars": 8000,
+    "customPrompt": ""
+  }
+}
+```
+
 ## Commit Style Reference
 
 - **conventional** — Follows the [Conventional Commits](https://www.conventionalcommits.org/) spec, e.g. `feat(scope): description`

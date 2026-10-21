@@ -5,6 +5,7 @@ import { getDiff, truncateDiff } from './git';
 import { ApiError, generateCommitMessage } from './ai';
 import { describeError } from './errors';
 import { openSettingsPanel } from './panel';
+import { exportConfiguration, importConfiguration } from './transferCommands';
 import { t } from './i18n';
 
 interface GitRepository {
@@ -123,7 +124,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('smartCommitMessage.generate', (ctx?: { rootUri?: vscode.Uri }) => generate(context, ctx)),
     vscode.commands.registerCommand('smartCommitMessage.setApiKey', () => promptForApiKey(context, getBaseUrl())),
     vscode.commands.registerCommand('smartCommitMessage.clearApiKey', () => clearApiKey(context, getBaseUrl())),
-    vscode.commands.registerCommand('smartCommitMessage.openSettings', () => openSettingsPanel(context))
+    vscode.commands.registerCommand('smartCommitMessage.openSettings', () => openSettingsPanel(context)),
+    vscode.commands.registerCommand('smartCommitMessage.exportConfig', () => exportConfiguration(context)),
+    vscode.commands.registerCommand('smartCommitMessage.importConfig', () => importConfiguration(context))
   );
 }
 

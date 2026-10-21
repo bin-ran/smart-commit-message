@@ -6,6 +6,7 @@ import { panelLabels, t } from './i18n';
 import { clearApiKeyFor, getApiKeyFor, hasApiKeyFor, listApiKeySlots, setApiKeyFor } from './keys';
 import { PROVIDER_PRESETS, type ProviderPreset } from './presets';
 import { checkBaseUrl } from './url';
+import { exportConfiguration, importConfiguration } from './transferCommands';
 import { renderPanelHtml } from './panelHtml';
 
 export interface PanelState {
@@ -39,6 +40,8 @@ type PanelMessage =
   | { type: 'keyState'; payload: { baseUrl: string } }
   | { type: 'fetchModels'; payload: { baseUrl: string; apiKey: string } }
   | { type: 'test'; payload: { baseUrl: string; model: string; apiKey: string } }
+  | { type: 'exportConfig' }
+  | { type: 'importConfig' }
   | { type: 'close' };
 
 const CONFIG_SECTION = 'smartCommitMessage';
@@ -184,6 +187,15 @@ async function handleMessage(context: vscode.ExtensionContext, panel: vscode.Web
       }
       return;
     }
+
+    case 'exportConfig':
+      await exportConfiguration(context);
+      return;
+
+    case 'importConfig':
+      await importConfiguration(context);
+      await pushState(context, panel);
+      return;
 
     case 'close':
       panel.dispose();

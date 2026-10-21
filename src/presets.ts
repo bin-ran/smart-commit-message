@@ -78,3 +78,15 @@ export function resolveProviderSelection(
   }
   return { baseUrl: preset.baseUrl, model: preset.models[0] ?? '' };
 }
+
+// 导入配置时由槽位反推 baseUrl（自定义槽位用 https 还原，协议不影响槽位）
+export function baseUrlForKeySlot(slot: string, presets: ProviderPreset[] = PROVIDER_PRESETS): string | undefined {
+  const preset = presets.find((item) => item.id === slot);
+  if (preset?.baseUrl) {
+    return preset.baseUrl;
+  }
+  if (slot.startsWith('custom:')) {
+    return `https://${slot.slice('custom:'.length)}`;
+  }
+  return undefined;
+}

@@ -89,6 +89,54 @@ export const t = {
   modelsUnavailable: () => isChinese()
     ? '该服务不支持模型列表接口，请手动填写模型名。'
     : 'This service does not expose a model list; enter the model name manually.',
+  exportKeysPrompt: () => isChinese()
+    ? '导出文件是否包含 API Key？包含时 Key 会以明文写入 JSON，请妥善保管。'
+    : 'Include API keys in the exported file? Keys are written as plain text, so keep the file safe.',
+  exportIncludeKeys: () => isChinese() ? '包含 Key' : 'Include keys',
+  exportWithoutKeys: () => isChinese() ? '不含 Key' : 'Settings only',
+  exportAction: () => isChinese() ? '导出' : 'Export',
+  exported: (filePath: string, keyCount: number) => isChinese()
+    ? `配置已导出到 ${filePath}${keyCount > 0 ? `（含 ${keyCount} 个 API Key，明文）` : ''}`
+    : `Configuration exported to ${filePath}${keyCount > 0 ? ` (including ${keyCount} API keys in plain text)` : ''}`,
+  exportFailed: (detail: string) => isChinese() ? `导出失败：${detail}` : `Export failed: ${detail}`,
+  importAction: () => isChinese() ? '导入' : 'Import',
+  importKeysWarning: (count: number) => isChinese()
+    ? `该文件包含 ${count} 个 API Key（明文）。是否一并导入？`
+    : `This file contains ${count} API key(s) in plain text. Import them as well?`,
+  importIncludeKeys: () => isChinese() ? '导入 Key' : 'Import keys',
+  importSkipKeys: () => isChinese() ? '仅导入设置' : 'Settings only',
+  importFailed: (detail: string) => isChinese() ? `导入失败：${detail}` : `Import failed: ${detail}`,
+  imported: (keyCount: number, skippedCount: number) => isChinese()
+    ? `配置已导入${keyCount > 0 ? `，含 ${keyCount} 个 API Key` : ''}${skippedCount > 0 ? `；${skippedCount} 个未知槽位的 Key 已跳过` : ''}`
+    : `Configuration imported${keyCount > 0 ? ` with ${keyCount} API key(s)` : ''}${skippedCount > 0 ? `; ${skippedCount} key(s) for unknown slots were skipped` : ''}`,
+  transferError: (code: string) => {
+    const zh: Record<string, string> = {
+      'invalid-json': '文件不是合法的 JSON。',
+      'unsupported-version': '配置文件版本不受支持。',
+      'invalid-settings': '文件缺少 settings 配置段。',
+      'invalid-base-url': '配置文件里的 Base URL 无效。',
+      'insecure-base-url': '配置文件里的 Base URL 不是 https（仅 localhost 允许 http）。',
+      'invalid-model': '配置文件里的模型名为空。',
+      'invalid-style': '配置文件里的风格取值无效。',
+      'invalid-language': '配置文件里的语言取值无效。',
+      'invalid-max-diff-chars': '配置文件里的 maxDiffChars 必须是不小于 100 的数字。',
+      'invalid-api-keys': '配置文件里的 API Key 段格式无效。',
+    };
+    const en: Record<string, string> = {
+      'invalid-json': 'The file is not valid JSON.',
+      'unsupported-version': 'The configuration file version is not supported.',
+      'invalid-settings': 'The file has no settings section.',
+      'invalid-base-url': 'The base URL in the file is invalid.',
+      'insecure-base-url': 'The base URL in the file is not https (http is only allowed for localhost).',
+      'invalid-model': 'The model name in the file is empty.',
+      'invalid-style': 'The style value in the file is invalid.',
+      'invalid-language': 'The language value in the file is invalid.',
+      'invalid-max-diff-chars': 'maxDiffChars in the file must be a number no less than 100.',
+      'invalid-api-keys': 'The API keys section in the file is malformed.',
+    };
+    const table = isChinese() ? zh : en;
+    return `Smart Commit Message: ${table[code] ?? (isChinese() ? '配置无法识别。' : 'The configuration is not recognised.')}`;
+  },
   panelSaveFailed: (detail: string) => isChinese()
     ? `配置未保存：${detail}`
     : `Configuration was not saved: ${detail}`,
@@ -138,6 +186,8 @@ export function panelLabels(): Record<string, string> {
     saveAsDefault: pick('保存并设为默认', 'Save as default'),
     keySavedForCurrent: pick('该地址已保存 Key', 'A key is saved for this endpoint'),
     keyMissingForCurrent: pick('该地址尚未保存 Key', 'No key saved for this endpoint'),
+    importConfig: pick('导入配置', 'Import'),
+    exportConfig: pick('导出配置', 'Export'),
   };
 }
 
