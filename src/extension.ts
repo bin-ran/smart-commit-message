@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getConfig, validateConfig } from './config';
+import { clearApiKey, getApiKey, getConfig, promptForApiKey, validateConfig } from './config';
 import { getDiff, GitError, truncateDiff } from './git';
 import { generateCommitMessage } from './ai';
 import { t } from './i18n';
@@ -41,8 +41,17 @@ function toErrorText(err: unknown): string {
   return typeof err === 'string' ? err : t.unknownError();
 }
 
-async function generate(ctx?: { rootUri?: vscode.Uri }): Promise<void> {
-  const cfg = getConfig();
+async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vscode.Uri }): Promise<void> {
+  const apiKey = await getApiKey(context);
+  if (!apiKey) {
+    const action = await vscode.window.showErrorMessage(t.apiKeyMissing(), t.actionSetApiKey());
+    if (action === t.actionSetApiKey()) {
+      await promptForApiKey(context);
+    }
+    return;
+  }
+
+  const cfg = getConfig(apiKey);
   const error = validateConfig(cfg);
   if (error) {
     vscode.window.showErrorMessage(error);
@@ -87,9 +96,11 @@ async function generate(ctx?: { rootUri?: vscode.Uri }): Promise<void> {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('smartCommitMessage.generate', (ctx?: { rootUri?: vscode.Uri }) => generate(ctx));
-
-  context.subscriptions.push(disposable);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('smartCommitMessage.generate', (ctx?: { rootUri?: vscode.Uri }) => generate(context, ctx)),
+    vscode.commands.registerCommand('smartCommitMessage.setApiKey', () => promptForApiKey(context)),
+    vscode.commands.registerCommand('smartCommitMessage.clearApiKey', () => clearApiKey(context))
+  );
 }
 
 export function deactivate() {}

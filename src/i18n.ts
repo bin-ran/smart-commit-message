@@ -6,11 +6,28 @@ export function isChinese(): boolean {
 
 export const t = {
   apiKeyMissing: () => isChinese()
-    ? 'Smart Commit Message：未配置 API Key，请在设置中配置 smartCommitMessage.apiKey。'
-    : 'Smart Commit Message: API Key is not configured. Please set it in Settings (smartCommitMessage.apiKey).',
+    ? 'Smart Commit Message：未配置 API Key，请点击下方按钮或运行命令「设置 API Key」配置。'
+    : 'Smart Commit Message: API Key is not configured. Click the button below or run the "Set API Key" command.',
+  actionSetApiKey: () => isChinese() ? '设置 API Key' : 'Set API Key',
+  apiKeyPromptTitle: () => isChinese() ? 'Smart Commit Message：设置 API Key' : 'Smart Commit Message: Set API Key',
+  apiKeyPromptPrompt: () => isChinese()
+    ? 'API Key 会保存在 VS Code SecretStorage 中（不写入 settings.json）。'
+    : 'The API key is stored in VS Code SecretStorage (never written to settings.json).',
+  apiKeyEmpty: () => isChinese() ? 'API Key 不能为空' : 'API Key cannot be empty',
+  apiKeySaved: () => isChinese() ? 'Smart Commit Message：API Key 已保存。' : 'Smart Commit Message: API Key saved.',
+  apiKeyCleared: () => isChinese() ? 'Smart Commit Message：已清除本地保存的 API Key。' : 'Smart Commit Message: Stored API key cleared.',
+  apiKeyMigrated: () => isChinese()
+    ? 'Smart Commit Message：已将 settings.json 中的 API Key 迁移到 SecretStorage。'
+    : 'Smart Commit Message: API key moved from settings.json to SecretStorage.',
   baseUrlMissing: () => isChinese()
     ? 'Smart Commit Message：未配置 Base URL。'
     : 'Smart Commit Message: Base URL is not configured.',
+  invalidBaseUrl: (baseUrl: string) => isChinese()
+    ? `Smart Commit Message：Base URL 无效（${baseUrl}），需要形如 https://api.example.com/v1 的地址。`
+    : `Smart Commit Message: Invalid base URL (${baseUrl}). Expected something like https://api.example.com/v1.`,
+  insecureBaseUrl: (baseUrl: string) => isChinese()
+    ? `Smart Commit Message：Base URL 必须使用 https（仅 localhost 允许 http）：${baseUrl}`
+    : `Smart Commit Message: Base URL must use https (http is allowed for localhost only): ${baseUrl}`,
   modelMissing: () => isChinese()
     ? 'Smart Commit Message：未配置模型。'
     : 'Smart Commit Message: Model is not configured.',

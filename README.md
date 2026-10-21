@@ -29,22 +29,33 @@ AI-powered VS Code extension that automatically analyzes Git code changes and ge
 
 ## Configuration
 
-Search for `Smart Commit Message` in VS Code Settings:
+Run `Smart Commit Message: Set API Key` from the Command Palette to store your API key — it is kept in VS Code SecretStorage and never written to `settings.json`.
+
+Other settings can be searched in VS Code Settings:
 
 | Setting | Description | Default |
 | ------- | ----------- | ------- |
-| `smartCommitMessage.apiKey` | API Key for the AI service | - |
-| `smartCommitMessage.baseUrl` | OpenAI-compatible API base URL | `https://api.deepseek.com` |
-| `smartCommitMessage.model` | Model name for commit generation | `deepseek-v4-flash` |
+| `smartCommitMessage.baseUrl` | OpenAI-compatible API base URL (machine scope, must be https unless localhost) | `https://api.deepseek.com` |
+| `smartCommitMessage.model` | Model name for commit generation (machine scope) | `deepseek-v4-flash` |
 | `smartCommitMessage.style` | Commit message style (conventional / simple / detailed) | `conventional` |
 | `smartCommitMessage.language` | Language for generated commits (English / Chinese) | `Chinese` |
 | `smartCommitMessage.customPrompt` | Custom system prompt appended after the style template | - |
+| `smartCommitMessage.apiKey` | Deprecated — only read once to migrate to SecretStorage | - |
+
+Use `Smart Commit Message: Clear API Key` to remove the stored key.
+
+`baseUrl` and `model` are machine-scoped so a workspace can never redirect your requests (and your API key) to another endpoint.
 
 ## Quick Start (DeepSeek)
 
 1. Get your API Key from the [DeepSeek Platform](https://platform.deepseek.com)
-2. Set `smartCommitMessage.apiKey` in VS Code Settings
+2. Run `Smart Commit Message: Set API Key` from the Command Palette and paste the key
 3. DeepSeek's baseUrl and model are pre-configured by default — just click the sparkle button to use
+
+## Notes
+
+- The generated diff (including new untracked files, binary/large files omitted) is sent to the configured API endpoint.
+- The extension is disabled in restricted mode (untrusted workspaces) since it sends code to a remote service.
 
 ## Commit Style Reference
 
