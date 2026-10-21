@@ -238,7 +238,21 @@ test('customPrompt 追加在系统提示词末尾', async () => {
   });
 });
 
-test('simple / detailed 风格使用各自的提示词', async () => {
+test('三种风格都要求 <type>(<scope>) 前缀', async () => {
+  await withServer(async ({ port, lastBody }) => {
+    const styles: Array<Config['style']> = ['conventional', 'simple', 'detailed'];
+    for (const style of styles) {
+      await generateCommitMessage('diff', { ...buildConfig(port), style });
+      const prompt = JSON.parse(lastBody()).messages[0].content as string;
+
+      assert.match(prompt, /<type>\(<scope>\)/, style);
+      assert.ok(prompt.includes('Always include a scope'), style);
+      assert.ok(prompt.includes('must not be translated'), style);
+    }
+  });
+});
+
+test('simple / detailed 在共用前缀之外各有自己的详略要求', async () => {
   await withServer(async ({ port, lastBody }) => {
     await generateCommitMessage('diff', { ...buildConfig(port), style: 'simple' });
     const simplePrompt = JSON.parse(lastBody()).messages[0].content as string;
@@ -248,5 +262,9 @@ test('simple / detailed 风格使用各自的提示词', async () => {
     await generateCommitMessage('diff', { ...buildConfig(port), style: 'detailed' });
     const detailedPrompt = JSON.parse(lastBody()).messages[0].content as string;
     assert.match(detailedPrompt, /2-5 bullet points/);
+
+    await generateCommitMessage('diff', { ...buildConfig(port), style: 'conventional' });
+    const conventionalPrompt = JSON.parse(lastBody()).messages[0].content as string;
+    assert.ok(conventionalPrompt.includes('BREAKING CHANGE'));
   });
 });

@@ -89,9 +89,11 @@ API Key 按服务商分别保存在 VS Code SecretStorage 中（DeepSeek / GLM /
 
 ## Commit 风格说明
 
-- **conventional** — 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范，格式如 `feat(scope): description`
-- **simple** — 一句话简洁描述变更
-- **detailed** — 短摘要 + 详细变更说明
+三种风格都带 `<type>(<scope>)` 前缀，区别只在 body 的详略。
+
+- **conventional** — 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范，只有标题行，如 `feat(panel): 新增配置面板`
+- **simple** — 同样的前缀 + 一句话，无 body
+- **detailed** — 同样的前缀 + 空行 + 2–5 条 body bullet，说明动机与影响
 
 ## 本地开发
 

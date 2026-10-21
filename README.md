@@ -89,9 +89,11 @@ Use **"Export Configuration"** / **"Import Configuration"** from the Command Pal
 
 ## Commit Style Reference
 
-- **conventional** — Follows the [Conventional Commits](https://www.conventionalcommits.org/) spec, e.g. `feat(scope): description`
-- **simple** — One concise sentence describing the change
-- **detailed** — Short summary + detailed change description
+All three styles use the `<type>(<scope>)` prefix; they only differ in how much body they write.
+
+- **conventional** — Follows the [Conventional Commits](https://www.conventionalcommits.org/) spec, subject line only, e.g. `feat(panel): add configuration panel`
+- **simple** — The same prefix followed by a single sentence, no body
+- **detailed** — The same prefix plus a blank line and 2–5 body bullets explaining why and what it affects
 
 ## Development & Release
 
