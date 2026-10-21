@@ -6,6 +6,7 @@ out/test/**
 .npmrc
 .yarnrc
 .claude/**
+icon.ico
 pnpm-lock.yaml
 pnpm-workspace.yaml
 vsc-extension-quickstart.md
