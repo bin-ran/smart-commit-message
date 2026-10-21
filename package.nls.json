@@ -11,5 +11,6 @@
   "config.model.description": "Model name to use for generation",
   "config.style.description": "Commit message style",
   "config.language.description": "Language for the generated commit message",
-  "config.customPrompt.description": "Custom system prompt appended to the style template"
+  "config.customPrompt.description": "Custom system prompt appended to the style template",
+  "config.maxDiffChars.description": "Maximum number of diff characters sent to the AI service; whole files are dropped from the end when the budget is exceeded"
 }

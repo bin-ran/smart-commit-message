@@ -109,6 +109,12 @@
           "type": "string",
           "default": "",
           "description": "%config.customPrompt.description%"
+        },
+        "smartCommitMessage.maxDiffChars": {
+          "type": "number",
+          "default": 8000,
+          "minimum": 100,
+          "description": "%config.maxDiffChars.description%"
         }
       }
     }

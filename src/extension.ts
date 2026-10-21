@@ -41,6 +41,10 @@ function toErrorText(err: unknown): string {
   return typeof err === 'string' ? err : t.unknownError();
 }
 
+function describeError(err: unknown): string {
+  return err instanceof GitError ? t.gitFailed(err.detail) : toErrorText(err);
+}
+
 async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vscode.Uri }): Promise<void> {
   const apiKey = await getApiKey(context);
   if (!apiKey) {
@@ -84,14 +88,13 @@ async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vsco
         title: t.generating(),
         cancellable: false,
       },
-      () => generateCommitMessage(truncateDiff(diff), cfg)
+      () => generateCommitMessage(truncateDiff(diff, cfg.maxDiffChars), cfg)
     );
 
     repo.inputBox.value = message;
     vscode.window.showInformationMessage(t.success());
   } catch (err) {
-    const detail = err instanceof GitError ? t.gitFailed(err.detail) : toErrorText(err);
-    vscode.window.showErrorMessage(`Smart Commit Message: ${detail}`);
+    vscode.window.showErrorMessage(`Smart Commit Message: ${describeError(err)}`);
   }
 }
 

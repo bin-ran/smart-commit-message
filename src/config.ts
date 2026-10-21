@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { inferLanguage, t } from './i18n';
+import { DEFAULT_MAX_DIFF_CHARS } from './git';
 
 export const API_KEY_SECRET = 'smartCommitMessage.apiKey';
 const LEGACY_API_KEY_SETTING = 'apiKey';
@@ -12,6 +13,7 @@ export interface Config {
   style: 'conventional' | 'simple' | 'detailed';
   language: string;
   customPrompt: string;
+  maxDiffChars: number;
 }
 
 // API Key 只存 SecretStorage：settings.json 里的值会随 Settings Sync 同步、
@@ -75,6 +77,7 @@ export function getConfig(apiKey: string): Config {
     style: config.get<'conventional' | 'simple' | 'detailed'>('style', 'conventional'),
     language: config.get<string>('language', inferLanguage()),
     customPrompt: config.get<string>('customPrompt', ''),
+    maxDiffChars: config.get<number>('maxDiffChars', DEFAULT_MAX_DIFF_CHARS),
   };
 }
 
@@ -108,6 +111,9 @@ export function validateConfig(cfg: Config): string | undefined {
   }
   if (!cfg.model) {
     return t.modelMissing();
+  }
+  if (!Number.isFinite(cfg.maxDiffChars) || cfg.maxDiffChars < 100) {
+    return t.invalidMaxDiffChars();
   }
   return validateBaseUrl(cfg.baseUrl);
 }

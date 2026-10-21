@@ -6,6 +6,7 @@ const MAX_BUFFER = 10 * 1024 * 1024;
 const MAX_UNTRACKED_FILES = 20;
 const MAX_UNTRACKED_FILE_BYTES = 100 * 1024;
 const BINARY_SNIFF_BYTES = 8000;
+export const DEFAULT_MAX_DIFF_CHARS = 8000;
 
 export class GitError extends Error {
   constructor(readonly detail: string) {
@@ -113,9 +114,61 @@ export async function getDiff(cwd: string): Promise<string> {
   return [trackedDiff, untrackedDiff].filter((part) => part.trim().length > 0).join('\n').trim();
 }
 
-export function truncateDiff(diff: string, maxChars: number = 8000): string {
+export function truncateDiff(diff: string, maxChars: number = DEFAULT_MAX_DIFF_CHARS): string {
   if (diff.length <= maxChars) {
     return diff;
   }
-  return diff.slice(0, maxChars) + '\n\n... (diff truncated)';
+
+  const sections = splitIntoSections(diff);
+  const kept: string[] = [];
+  let used = 0;
+
+  for (const section of sections) {
+    if (used + section.length + 1 > maxChars) {
+      break;
+    }
+    kept.push(section);
+    used += section.length + 1;
+  }
+
+  // 单个文件就超预算时只截断该文件内部，保留文件头以便模型知道改了哪个文件
+  if (kept.length === 0) {
+    const head = truncateSection(sections[0] ?? diff, maxChars);
+    const rest = sections.length > 1 ? `\n\n... (${sections.length - 1} more changed file(s) omitted)` : '';
+    return head + rest;
+  }
+
+  const omitted = sections.length - kept.length;
+  if (omitted === 0) {
+    return `${kept.join('\n')}\n\n... (diff truncated)`;
+  }
+  return `${kept.join('\n')}\n\n... (${omitted} more changed file(s) omitted)`;
+}
+
+// 按 diff --git 分成文件段，截断时整段丢弃，避免切碎 hunk 让模型误判改动范围。
+function splitIntoSections(diff: string): string[] {
+  const sections: string[] = [];
+  let current: string[] = [];
+
+  for (const line of diff.split('\n')) {
+    if (line.startsWith('diff --git ') && current.length > 0) {
+      sections.push(current.join('\n'));
+      current = [];
+    }
+    current.push(line);
+  }
+  if (current.length > 0) {
+    sections.push(current.join('\n'));
+  }
+  return sections;
+}
+
+function cutAtLineBoundary(text: string, maxChars: number): string {
+  const sliced = text.slice(0, maxChars);
+  const lastNewline = sliced.lastIndexOf('\n');
+  return lastNewline > 0 ? sliced.slice(0, lastNewline) : sliced;
+}
+
+function truncateSection(section: string, maxChars: number): string {
+  return `${cutAtLineBoundary(section, maxChars)}\n... (file truncated)`;
 }

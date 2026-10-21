@@ -31,6 +31,9 @@ export const t = {
   modelMissing: () => isChinese()
     ? 'Smart Commit Message：未配置模型。'
     : 'Smart Commit Message: Model is not configured.',
+  invalidMaxDiffChars: () => isChinese()
+    ? 'Smart Commit Message：maxDiffChars 必须是不小于 100 的数字。'
+    : 'Smart Commit Message: maxDiffChars must be a number no less than 100.',
   noWorkspace: () => isChinese()
     ? 'Smart Commit Message：未找到工作区文件夹。'
     : 'Smart Commit Message: No workspace folder found.',
@@ -49,6 +52,9 @@ export const t = {
   gitFailed: (detail: string) => isChinese()
     ? `Smart Commit Message：读取 Git 改动失败。${detail}`
     : `Smart Commit Message: Failed to read git changes. ${detail}`,
+  requestTimeout: () => isChinese()
+    ? 'Smart Commit Message：请求 AI 服务超时（60 秒），请检查网络或更换 baseUrl。'
+    : 'Smart Commit Message: The AI request timed out (60s). Check your network or base URL.',
   success: () => isChinese()
     ? 'Smart Commit Message：Commit 信息已生成！'
     : 'Smart Commit Message: Commit message generated!',
