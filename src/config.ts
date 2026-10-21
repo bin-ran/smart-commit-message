@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { inferLanguage, t } from './i18n';
 import { DEFAULT_MAX_DIFF_CHARS } from './git';
 import { checkBaseUrl } from './url';
+import { normalizeProviderMap, resolveActiveProvider, upsertProviderConfig, type ActiveProvider, type ProviderConfigMap } from './providers';
 
 export const CONFIG_DEFAULTS = {
   baseUrl: 'https://api.deepseek.com',
@@ -20,17 +21,53 @@ export interface Config {
   maxDiffChars: number;
 }
 
-export function getBaseUrl(): string {
+export interface ProviderSettings {
+  providers: ProviderConfigMap;
+  defaultSlot: string;
+  active: ActiveProvider;
+}
+
+function readProviderSettings(): ProviderSettings {
   const config = vscode.workspace.getConfiguration('smartCommitMessage');
-  return config.get<string>('baseUrl', CONFIG_DEFAULTS.baseUrl);
+  const providers = normalizeProviderMap(config.get<unknown>('providers', {}));
+  const defaultSlot = config.get<string>('defaultProvider', '');
+  const fallback = {
+    baseUrl: config.get<string>('baseUrl', CONFIG_DEFAULTS.baseUrl),
+    model: config.get<string>('model', CONFIG_DEFAULTS.model),
+  };
+  return { providers, defaultSlot, active: resolveActiveProvider(providers, defaultSlot, fallback) };
+}
+
+export function getProviderSettings(): ProviderSettings {
+  return readProviderSettings();
+}
+
+// 生成时使用默认服务商的 baseUrl
+export function getBaseUrl(): string {
+  return readProviderSettings().active.baseUrl;
+}
+
+// 老用户只有全局 baseUrl/model：首次运行时写成 providers 里的一个条目并设为默认
+export async function ensureProviderMigration(): Promise<void> {
+  const configuration = vscode.workspace.getConfiguration('smartCommitMessage');
+  const { providers, defaultSlot, active } = readProviderSettings();
+  if (defaultSlot && providers[defaultSlot]) {
+    return;
+  }
+
+  const next = upsertProviderConfig(providers, active.baseUrl, active.model);
+  const target = vscode.ConfigurationTarget.Global;
+  await configuration.update('providers', next, target);
+  await configuration.update('defaultProvider', active.slot, target);
 }
 
 export function getConfig(apiKey: string): Config {
   const config = vscode.workspace.getConfiguration('smartCommitMessage');
+  const { active } = readProviderSettings();
   return {
     apiKey,
-    baseUrl: config.get<string>('baseUrl', CONFIG_DEFAULTS.baseUrl),
-    model: config.get<string>('model', CONFIG_DEFAULTS.model),
+    baseUrl: active.baseUrl,
+    model: active.model,
     style: config.get<'conventional' | 'simple' | 'detailed'>('style', CONFIG_DEFAULTS.style),
     language: config.get<string>('language', inferLanguage()),
     customPrompt: config.get<string>('customPrompt', ''),

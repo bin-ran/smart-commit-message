@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getBaseUrl, getConfig, validateConfig } from './config';
+import { ensureProviderMigration, getBaseUrl, getConfig, validateConfig } from './config';
 import { clearApiKey, getApiKeyFor, promptForApiKey } from './keys';
 import { getDiff, truncateDiff } from './git';
 import { ApiError, generateCommitMessage } from './ai';
@@ -120,6 +120,9 @@ async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vsco
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  // 老版本只有全局 baseUrl/model，迁移成 providers 里的一条并设为默认
+  void ensureProviderMigration().catch(() => undefined);
+
   context.subscriptions.push(
     vscode.commands.registerCommand('smartCommitMessage.generate', (ctx?: { rootUri?: vscode.Uri }) => generate(context, ctx)),
     vscode.commands.registerCommand('smartCommitMessage.setApiKey', () => promptForApiKey(context, getBaseUrl())),

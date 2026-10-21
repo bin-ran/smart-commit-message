@@ -1,15 +1,19 @@
 import * as vscode from 'vscode';
 import { listModels, probeConnection } from './ai';
-import { CONFIG_DEFAULTS, getBaseUrl } from './config';
+import { CONFIG_DEFAULTS, ensureProviderMigration, getBaseUrl, getProviderSettings } from './config';
 import { describeError, toErrorText } from './errors';
 import { panelLabels, t } from './i18n';
 import { clearApiKeyFor, getApiKeyFor, hasApiKeyFor, listApiKeySlots, setApiKeyFor } from './keys';
-import { PROVIDER_PRESETS, type ProviderPreset } from './presets';
+import { keySlotForBaseUrl, PROVIDER_PRESETS, type ProviderPreset } from './presets';
+import { upsertProviderConfig, type ProviderConfigMap } from './providers';
 import { checkBaseUrl } from './url';
 import { exportConfiguration, importConfiguration } from './transferCommands';
 import { renderPanelHtml } from './panelHtml';
 
 export interface PanelState {
+  slot: string;
+  defaultSlot: string;
+  providerConfigs: ProviderConfigMap;
   baseUrl: string;
   model: string;
   style: string;
@@ -36,6 +40,7 @@ interface PanelDraft {
 type PanelMessage =
   | { type: 'ready' }
   | { type: 'save'; payload: PanelDraft }
+  | { type: 'setDefault'; payload: { baseUrl: string } }
   | { type: 'clearKey'; payload?: { baseUrl: string } }
   | { type: 'keyState'; payload: { baseUrl: string } }
   | { type: 'fetchModels'; payload: { baseUrl: string; apiKey: string } }
@@ -48,12 +53,17 @@ const CONFIG_SECTION = 'smartCommitMessage';
 let currentPanel: vscode.WebviewPanel | undefined;
 
 async function buildState(context: vscode.ExtensionContext): Promise<PanelState> {
+  await ensureProviderMigration();
   const configuration = vscode.workspace.getConfiguration(CONFIG_SECTION);
-  const baseUrl = configuration.get<string>('baseUrl', CONFIG_DEFAULTS.baseUrl);
+  const { providers, defaultSlot, active } = getProviderSettings();
+  const baseUrl = active.baseUrl;
 
   return {
+    slot: keySlotForBaseUrl(baseUrl),
+    defaultSlot,
+    providerConfigs: providers,
     baseUrl,
-    model: configuration.get<string>('model', CONFIG_DEFAULTS.model),
+    model: active.model,
     style: configuration.get<string>('style', CONFIG_DEFAULTS.style),
     // 未设置时跟随界面语言，面板里用空串表示“跟随界面”
     language: configuration.inspect<string>('language')?.globalValue ?? '',
@@ -98,9 +108,10 @@ async function saveDraft(context: vscode.ExtensionContext, draft: PanelDraft): P
   const configuration = vscode.workspace.getConfiguration(CONFIG_SECTION);
   const target = vscode.ConfigurationTarget.Global;
 
-  // baseUrl/model 写进配置即等于把当前服务商设为默认（生成时使用）
-  await configuration.update('baseUrl', draft.baseUrl.trim(), target);
-  await configuration.update('model', draft.model.trim(), target);
+  // 只更新该服务商自己的配置，默认服务商由“设为默认”单独决定
+  const { providers } = getProviderSettings();
+  const nextProviders = upsertProviderConfig(providers, draft.baseUrl.trim(), draft.model.trim());
+  await configuration.update('providers', nextProviders, target);
   await configuration.update('style', draft.style, target);
   await configuration.update('language', draft.language || undefined, target);
   await configuration.update('maxDiffChars', Math.round(draft.maxDiffChars), target);
@@ -128,7 +139,23 @@ async function handleMessage(context: vscode.ExtensionContext, panel: vscode.Web
         return;
       }
       await pushState(context, panel);
-      postToPanel(panel, { type: 'saved', message: t.savedAsDefault() });
+      postToPanel(panel, { type: 'saved', message: t.savedProviderConfig() });
+      return;
+    }
+
+    case 'setDefault': {
+      const baseUrl = message.payload.baseUrl.trim();
+      const { providers } = getProviderSettings();
+      const slot = keySlotForBaseUrl(baseUrl);
+      if (!providers[slot]) {
+        postToPanel(panel, { type: 'error', message: t.saveBeforeSetDefault() });
+        return;
+      }
+      await vscode.workspace
+        .getConfiguration(CONFIG_SECTION)
+        .update('defaultProvider', slot, vscode.ConfigurationTarget.Global);
+      await pushState(context, panel);
+      postToPanel(panel, { type: 'saved', message: t.defaultUpdated() });
       return;
     }
 

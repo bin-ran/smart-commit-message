@@ -1,4 +1,5 @@
 import { checkBaseUrl } from './url';
+import type { ProviderConfigMap } from './providers';
 
 export const TRANSFER_VERSION = 1;
 export const STYLE_VALUES = ['conventional', 'simple', 'detailed'] as const;
@@ -18,7 +19,18 @@ export interface TransferFile {
   version: number;
   exportedAt?: string;
   settings: TransferSettings;
+  // 槽位 -> 该服务商保存的 baseUrl/model
+  providers?: ProviderConfigMap;
+  // 生成时使用的服务商槽位
+  defaultProvider?: string;
   // 槽位 -> Key。默认不导出，只有用户显式选择时才写入
+  apiKeys?: Record<string, string>;
+}
+
+export interface TransferInput {
+  settings: TransferSettings;
+  providers?: ProviderConfigMap;
+  defaultProvider?: string;
   apiKeys?: Record<string, string>;
 }
 
@@ -32,11 +44,13 @@ export type TransferError =
   | 'invalid-style'
   | 'invalid-language'
   | 'invalid-max-diff-chars'
-  | 'invalid-api-keys';
+  | 'invalid-api-keys'
+  | 'invalid-providers';
 
 export type TransferParseResult = { file: TransferFile } | { error: TransferError };
 
-export function buildTransferFile(settings: TransferSettings, apiKeys?: Record<string, string>): TransferFile {
+export function buildTransferFile(input: TransferInput): TransferFile {
+  const { settings, apiKeys, providers, defaultProvider } = input;
   const file: TransferFile = {
     version: TRANSFER_VERSION,
     exportedAt: new Date().toISOString(),
@@ -49,6 +63,21 @@ export function buildTransferFile(settings: TransferSettings, apiKeys?: Record<s
       customPrompt: settings.customPrompt,
     },
   };
+
+  const providerSlots = Object.keys(providers ?? {});
+  if (providerSlots.length > 0) {
+    const saved: ProviderConfigMap = {};
+    for (const slot of providerSlots) {
+      const entry = providers?.[slot];
+      if (entry) {
+        saved[slot] = { baseUrl: entry.baseUrl, model: entry.model };
+      }
+    }
+    file.providers = saved;
+  }
+  if (defaultProvider) {
+    file.defaultProvider = defaultProvider;
+  }
 
   const slots = Object.keys(apiKeys ?? {}).filter((slot) => (apiKeys?.[slot] ?? '').trim().length > 0);
   if (slots.length > 0) {
@@ -101,6 +130,29 @@ function parseSettings(raw: unknown): { settings: TransferSettings } | { error: 
   return { settings: { baseUrl, model, style, language, maxDiffChars, customPrompt } };
 }
 
+function parseProviders(raw: unknown): { providers: ProviderConfigMap } | { error: TransferError } {
+  if (raw === undefined) {
+    return { providers: {} };
+  }
+  if (!isRecord(raw)) {
+    return { error: 'invalid-providers' };
+  }
+
+  const providers: ProviderConfigMap = {};
+  for (const [slot, value] of Object.entries(raw)) {
+    if (!slot.trim() || !isRecord(value)) {
+      return { error: 'invalid-providers' };
+    }
+    const baseUrl = typeof value.baseUrl === 'string' ? value.baseUrl.trim() : '';
+    const model = typeof value.model === 'string' ? value.model.trim() : '';
+    if (!baseUrl || !model || checkBaseUrl(baseUrl)) {
+      return { error: 'invalid-providers' };
+    }
+    providers[slot] = { baseUrl, model };
+  }
+  return { providers };
+}
+
 function parseApiKeys(raw: unknown): { apiKeys: Record<string, string> } | { error: TransferError } {
   if (raw === undefined) {
     return { apiKeys: {} };
@@ -143,6 +195,11 @@ export function parseTransferFile(raw: string): TransferParseResult {
     return { error: settingsResult.error };
   }
 
+  const providersResult = parseProviders(parsed.providers);
+  if ('error' in providersResult) {
+    return { error: providersResult.error };
+  }
+
   const keysResult = parseApiKeys(parsed.apiKeys);
   if ('error' in keysResult) {
     return { error: keysResult.error };
@@ -154,6 +211,12 @@ export function parseTransferFile(raw: string): TransferParseResult {
   };
   if (typeof parsed.exportedAt === 'string') {
     file.exportedAt = parsed.exportedAt;
+  }
+  if (Object.keys(providersResult.providers).length > 0) {
+    file.providers = providersResult.providers;
+  }
+  if (typeof parsed.defaultProvider === 'string' && parsed.defaultProvider.trim()) {
+    file.defaultProvider = parsed.defaultProvider.trim();
   }
   if (Object.keys(keysResult.apiKeys).length > 0) {
     file.apiKeys = keysResult.apiKeys;

@@ -7,11 +7,12 @@ import {
   parseTransferFile,
   type TransferSettings,
 } from './configTransfer';
-import { CONFIG_DEFAULTS } from './config';
+import { CONFIG_DEFAULTS, getProviderSettings } from './config';
 import { toErrorText } from './errors';
 import { t } from './i18n';
 import { listApiKeys, setApiKeyFor } from './keys';
 import { baseUrlForKeySlot } from './presets';
+import { normalizeProviderMap } from './providers';
 
 const CONFIG_SECTION = 'smartCommitMessage';
 const DEFAULT_FILE_NAME = 'smart-commit-message.config.json';
@@ -62,7 +63,13 @@ export async function exportConfiguration(context: vscode.ExtensionContext): Pro
     return;
   }
 
-  const file = buildTransferFile(readCurrentSettings(), includeKeys ? apiKeys : undefined);
+  const { providers, defaultSlot } = getProviderSettings();
+  const file = buildTransferFile({
+    settings: readCurrentSettings(),
+    providers,
+    defaultProvider: defaultSlot,
+    apiKeys: includeKeys ? apiKeys : undefined,
+  });
   try {
     await fs.writeFile(target.fsPath, `${JSON.stringify(file, null, 2)}\n`, 'utf-8');
     void vscode.window.showInformationMessage(t.exported(target.fsPath, includeKeys ? keyCount : 0));
@@ -116,6 +123,9 @@ export async function importConfiguration(context: vscode.ExtensionContext): Pro
   const configuration = vscode.workspace.getConfiguration(CONFIG_SECTION);
   const configTarget = vscode.ConfigurationTarget.Global;
 
+  // 服务商配置整体替换；旧字段仅作为没有 providers 时的兜底
+  await configuration.update('providers', normalizeProviderMap(parsed.file.providers ?? {}), configTarget);
+  await configuration.update('defaultProvider', parsed.file.defaultProvider ?? '', configTarget);
   await configuration.update('baseUrl', settings.baseUrl, configTarget);
   await configuration.update('model', settings.model, configTarget);
   await configuration.update('style', settings.style, configTarget);

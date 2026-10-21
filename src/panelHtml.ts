@@ -76,6 +76,7 @@ const SCRIPT = `
   const labels = {};
   let providers = [];
   let keySlots = [];
+  let providerConfigs = {};
   let defaultBaseUrl = '';
   let selectedProviderId = 'custom';
   let selectedStyle = 'conventional';
@@ -123,6 +124,12 @@ const SCRIPT = `
     return keySlots.indexOf(slot) !== -1;
   }
 
+  function hasSavedConfig(preset) {
+    const slot = slotForPreset(preset);
+    if (!slot) return false;
+    return Boolean(providerConfigs[slot]);
+  }
+
   function isDefaultProvider(preset) {
     if (!preset.baseUrl) return false;
     return normalizeBaseUrl(preset.baseUrl) === normalizeBaseUrl(defaultBaseUrl);
@@ -135,6 +142,13 @@ const SCRIPT = `
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = (isDefaultProvider(preset) ? '★ ' : '') + providerLabel(preset);
+      if (hasSavedConfig(preset)) {
+        const savedMark = document.createElement('span');
+        savedMark.className = 'chip-mark';
+        savedMark.textContent = '✓';
+        savedMark.title = labels.providerSavedMark || '';
+        button.appendChild(savedMark);
+      }
       if (hasKeyForPreset(preset)) {
         const mark = document.createElement('span');
         mark.className = 'chip-mark';
@@ -145,8 +159,14 @@ const SCRIPT = `
       button.setAttribute('aria-pressed', String(preset.id === selectedProviderId));
       button.addEventListener('click', () => {
         selectedProviderId = preset.id;
-        if (preset.baseUrl) byId('baseUrl').value = preset.baseUrl;
-        if (preset.models.length > 0) byId('model').value = preset.models[0];
+        const saved = providerConfigs[preset.id];
+        if (saved) {
+          byId('baseUrl').value = saved.baseUrl;
+          byId('model').value = saved.model;
+        } else if (preset.baseUrl) {
+          byId('baseUrl').value = preset.baseUrl;
+          if (preset.models.length > 0) byId('model').value = preset.models[0];
+        }
         renderProviders();
         requestKeyState();
       });
@@ -200,6 +220,7 @@ const SCRIPT = `
     Object.assign(labels, state.labels || {});
     providers = state.providers || [];
     keySlots = state.keySlots || [];
+    providerConfigs = state.providerConfigs || {};
     defaultBaseUrl = state.defaultBaseUrl || '';
     selectedProviderId = 'custom';
     providers.forEach((preset) => {
@@ -272,6 +293,11 @@ const SCRIPT = `
       const draft = collect();
       post('test', { baseUrl: draft.baseUrl, model: draft.model, apiKey: draft.apiKey });
     });
+  });
+
+  byId('setDefault').addEventListener('click', () => {
+    const draft = collect();
+    post('setDefault', { baseUrl: draft.baseUrl });
   });
 
   byId('save').addEventListener('click', () => {
@@ -397,7 +423,8 @@ export function renderPanelHtml(webview: vscode.Webview): string {
     <span class="status" id="status"></span>
     <span class="spacer"></span>
     <button id="cancel" class="secondary" type="button" data-i18n="cancel"></button>
-    <button id="save" class="primary" type="button" data-i18n="saveAsDefault"></button>
+    <button id="setDefault" class="secondary" type="button" data-i18n="setAsDefault"></button>
+    <button id="save" class="primary" type="button" data-i18n="save"></button>
   </div>
 </footer>
 

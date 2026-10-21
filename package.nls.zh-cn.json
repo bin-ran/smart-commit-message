@@ -8,12 +8,14 @@
   "config.title": "Smart Commit Message",
   "config.apiKey.description": "已弃用：API Key 改为保存在 VS Code SecretStorage 中",
   "config.apiKey.deprecation": "请改用命令「Smart Commit Message: 设置 API Key」；此配置仅在迁移时读取一次。",
-  "config.baseUrl.description": "OpenAI 兼容格式的 API 基础地址",
-  "config.model.description": "用于生成 Commit 的模型名称",
+  "config.baseUrl.description": "尚未保存任何服务商时使用的备用 Base URL",
+  "config.model.description": "尚未保存任何服务商时使用的备用模型",
   "config.style.description": "Commit 信息风格",
   "config.language.description": "生成 Commit 信息的语言；未设置时跟随 VS Code 界面语言",
   "config.customPrompt.description": "追加在风格模板后的自定义 System Prompt",
   "config.maxDiffChars.description": "发送给 AI 的 diff 最大字符数，超出时从尾部按文件整段丢弃",
   "command.exportConfig.title": "导出配置",
-  "command.importConfig.title": "导入配置"
+  "command.importConfig.title": "导入配置",
+  "config.providers.description": "按服务商槽位保存的 baseUrl/model（由配置面板维护）",
+  "config.defaultProvider.description": "生成 Commit 时使用的服务商槽位（由配置面板维护）"
 }

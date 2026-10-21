@@ -28,7 +28,7 @@ AI-powered VS Code extension that automatically analyzes Git code changes and ge
 3. Click the sparkle button in the toolbar, or press `Ctrl+Shift+P` and type **"Generate Commit Message"**
 4. The generated commit message will be automatically filled into the input box
 
-Click the gear button in the Source Control title bar (or run **"Configure Model"**) to open the configuration panel: pick a provider preset, fetch the available models, paste your API key, then use **Test connection** before saving. `★` marks the provider used for generation (saving sets the default), `●` marks providers that already have a key.
+Click the gear button in the Source Control title bar (or run **"Configure Model"**) to open the configuration panel: pick a provider preset, fetch the available models, paste your API key, then use **Test connection** before saving. `★` marks the default provider used for generation, `●` means a key is saved, `✓` means that provider has a saved configuration. **Save** only updates the selected provider; use **Set as default** to switch which provider generation uses.
 
 ## Configuration
 
@@ -38,8 +38,10 @@ Other settings can be searched in VS Code Settings:
 
 | Setting | Description | Default |
 | ------- | ----------- | ------- |
-| `smartCommitMessage.baseUrl` | OpenAI-compatible API base URL (machine scope, must be https unless localhost) | `https://api.deepseek.com` |
-| `smartCommitMessage.model` | Model name for commit generation (machine scope) | `deepseek-v4-flash` |
+| `smartCommitMessage.providers` | Per-provider saved baseUrl/model, keyed by provider slot (managed by the configuration panel) | `{}` |
+| `smartCommitMessage.defaultProvider` | Provider slot used for commit generation | - |
+| `smartCommitMessage.baseUrl` | Fallback base URL used before any provider is saved (machine scope, must be https unless localhost) | `https://api.deepseek.com` |
+| `smartCommitMessage.model` | Fallback model name used before any provider is saved (machine scope) | `deepseek-v4-flash` |
 | `smartCommitMessage.style` | Commit message style (conventional / simple / detailed) | `conventional` |
 | `smartCommitMessage.language` | Language for generated commits (English / Chinese), follows the VS Code display language when unset | - |
 | `smartCommitMessage.customPrompt` | Custom system prompt appended after the style template | - |

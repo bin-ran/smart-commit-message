@@ -28,7 +28,7 @@ AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的
 3. 点击工具栏的 sparkle 按钮，或按 `Ctrl+Shift+P` 输入 **"生成 Commit Message"**
 4. 生成的 Commit Message 会自动填入输入框
 
-点击 Source Control 标题栏的齿轮按钮（或运行 **"配置大模型"**）打开配置面板：选服务商预设 → 拉取可用模型 → 粘贴 API Key → **测试连接** → 保存。`★` 表示生成时使用的服务商（保存即设为默认），`●` 表示该服务商已保存 Key。
+点击 Source Control 标题栏的齿轮按钮（或运行 **"配置大模型"**）打开配置面板：选服务商预设 → 拉取可用模型 → 粘贴 API Key → **测试连接** → 保存。`★` 表示生成时使用的默认服务商，`●` 表示已保存 Key，`✓` 表示该服务商已保存配置。**保存** 只更新当前服务商，要切换生成用的服务商请点 **设为默认**。
 
 ## 配置项
 
@@ -38,8 +38,10 @@ API Key 通过命令面板运行 **「Smart Commit Message: 设置 API Key」** 
 
 | 配置项 | 说明 | 默认值 |
 |--------|------|--------|
-| `smartCommitMessage.baseUrl` | OpenAI 兼容格式的 API 基础地址（machine 级，非 localhost 必须是 https） | `https://api.deepseek.com` |
-| `smartCommitMessage.model` | 用于生成 Commit 的模型名称（machine 级） | `deepseek-v4-flash` |
+| `smartCommitMessage.providers` | 各服务商保存的 baseUrl/model，按槽位存储（由配置面板维护） | `{}` |
+| `smartCommitMessage.defaultProvider` | 生成 Commit 时使用的服务商槽位 | - |
+| `smartCommitMessage.baseUrl` | 尚未保存任何服务商时的备用 Base URL（machine 级，非 localhost 必须是 https） | `https://api.deepseek.com` |
+| `smartCommitMessage.model` | 尚未保存任何服务商时的备用模型（machine 级） | `deepseek-v4-flash` |
 | `smartCommitMessage.style` | Commit 信息风格（conventional / simple / detailed） | `conventional` |
 | `smartCommitMessage.language` | 生成 Commit 信息的语言（English / Chinese），未设置时跟随 VS Code 界面语言 | - |
 | `smartCommitMessage.customPrompt` | 追加在风格模板后的自定义 System Prompt | - |

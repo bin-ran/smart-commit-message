@@ -136,6 +136,18 @@
           "default": 8000,
           "minimum": 100,
           "description": "%config.maxDiffChars.description%"
+        },
+        "smartCommitMessage.providers": {
+          "type": "object",
+          "default": {},
+          "scope": "machine",
+          "description": "%config.providers.description%"
+        },
+        "smartCommitMessage.defaultProvider": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "%config.defaultProvider.description%"
         }
       }
     }

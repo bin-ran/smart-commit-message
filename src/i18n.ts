@@ -19,9 +19,15 @@ export const t = {
   apiKeyClearedForProvider: () => isChinese()
     ? 'Smart Commit Message：已清除该服务商的 API Key。'
     : 'Smart Commit Message: API key cleared for this provider.',
-  savedAsDefault: () => isChinese()
-    ? '已保存，生成时将使用该服务商'
-    : 'Saved; this provider is now used for generation',
+  savedProviderConfig: () => isChinese()
+    ? '已保存该服务商的配置（未改变默认服务商）'
+    : 'Provider configuration saved (default provider unchanged)',
+  defaultUpdated: () => isChinese()
+    ? '已设为默认服务商，生成时使用它'
+    : 'Set as the default provider used for generation',
+  saveBeforeSetDefault: () => isChinese()
+    ? '请先保存当前服务商的配置，再设为默认。'
+    : 'Save this provider before setting it as the default.',
   apiKeyMigrated: () => isChinese()
     ? 'Smart Commit Message：已将 settings.json 中的 API Key 迁移到 SecretStorage。'
     : 'Smart Commit Message: API key moved from settings.json to SecretStorage.',
@@ -121,6 +127,7 @@ export const t = {
       'invalid-language': '配置文件里的语言取值无效。',
       'invalid-max-diff-chars': '配置文件里的 maxDiffChars 必须是不小于 100 的数字。',
       'invalid-api-keys': '配置文件里的 API Key 段格式无效。',
+      'invalid-providers': '配置文件里的服务商配置段格式无效。',
     };
     const en: Record<string, string> = {
       'invalid-json': 'The file is not valid JSON.',
@@ -133,6 +140,7 @@ export const t = {
       'invalid-language': 'The language value in the file is invalid.',
       'invalid-max-diff-chars': 'maxDiffChars in the file must be a number no less than 100.',
       'invalid-api-keys': 'The API keys section in the file is malformed.',
+      'invalid-providers': 'The providers section in the file is malformed.',
     };
     const table = isChinese() ? zh : en;
     return `Smart Commit Message: ${table[code] ?? (isChinese() ? '配置无法识别。' : 'The configuration is not recognised.')}`;
@@ -180,10 +188,11 @@ export function panelLabels(): Record<string, string> {
     cancel: pick('关闭', 'Close'),
     providerCustom: pick('自定义', 'Custom'),
     providerHint: pick(
-      '★ 生成时使用的服务商 · ● 已保存 API Key · 每个服务商各自保存 Key',
-      '★ provider used for generation · ● API key saved · keys are stored per provider'
+      '★ 生成时使用的默认服务商 · ● 已保存 API Key · ✓ 已保存配置。保存只更新当前服务商，设为默认才切换生成用的服务商。',
+      '★ default provider used for generation · ● API key saved · ✓ configuration saved. Saving updates the current provider only; use "Set as default" to switch the provider used for generation.'
     ),
-    saveAsDefault: pick('保存并设为默认', 'Save as default'),
+    setAsDefault: pick('设为默认', 'Set as default'),
+    providerSavedMark: pick('已保存该服务商配置', 'Provider configuration saved'),
     keySavedForCurrent: pick('该地址已保存 Key', 'A key is saved for this endpoint'),
     keyMissingForCurrent: pick('该地址尚未保存 Key', 'No key saved for this endpoint'),
     importConfig: pick('导入配置', 'Import'),

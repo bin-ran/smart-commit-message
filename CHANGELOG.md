@@ -17,6 +17,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Changed
 
+- Saving a provider and choosing the default provider are separate actions: `Save` only writes the selected provider, `Set as default` switches the provider used for generation
+- Per-provider baseUrl/model are stored in `smartCommitMessage.providers`, with `smartCommitMessage.defaultProvider` selecting the active one (existing baseUrl/model are migrated automatically)
 - API keys are stored per provider in VS Code SecretStorage (one slot per preset plus one per custom endpoint), and are migrated from the previous single key automatically
 - The configuration panel marks the default provider (`★`) and providers that already have a key (`●`)
 - `baseUrl` and `model` are machine-scoped settings, so a workspace can no longer override them

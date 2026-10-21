@@ -12,7 +12,7 @@ const settings: TransferSettings = {
 };
 
 test('buildTransferFile 生成带版本号的配置快照', () => {
-  const file = buildTransferFile(settings);
+  const file = buildTransferFile({ settings });
 
   assert.equal(file.version, TRANSFER_VERSION);
   assert.equal(file.settings.baseUrl, 'https://api.deepseek.com');
@@ -21,13 +21,13 @@ test('buildTransferFile 生成带版本号的配置快照', () => {
 });
 
 test('buildTransferFile 仅在显式传入时导出非空 Key', () => {
-  const file = buildTransferFile(settings, { deepseek: ' sk-1 ', glm: '   ', custom: 'x' });
+  const file = buildTransferFile({ settings, apiKeys: { deepseek: ' sk-1 ', glm: '   ', custom: 'x' } });
 
   assert.deepEqual(file.apiKeys, { deepseek: 'sk-1', custom: 'x' });
 });
 
 test('导出后再导入可还原设置', () => {
-  const file = buildTransferFile(settings, { mimo: 'sk-mimo' });
+  const file = buildTransferFile({ settings, apiKeys: { mimo: 'sk-mimo' } });
   const result = parseTransferFile(JSON.stringify(file));
 
   assert.ok('file' in result);
@@ -87,4 +87,40 @@ test('未知字段不会进入设置', () => {
     'model',
     'style',
   ]);
+});
+
+test('导出包含服务商配置与默认服务商', () => {
+  const file = buildTransferFile({
+    settings,
+    providers: { deepseek: { baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' } },
+    defaultProvider: 'deepseek',
+  });
+
+  assert.deepEqual(file.providers, { deepseek: { baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' } });
+  assert.equal(file.defaultProvider, 'deepseek');
+
+  const result = parseTransferFile(JSON.stringify(file));
+  assert.ok('file' in result);
+  assert.deepEqual(result.file.providers, file.providers);
+  assert.equal(result.file.defaultProvider, 'deepseek');
+});
+
+test('导入拒绝非法的服务商配置段', () => {
+  const wrongShape = JSON.stringify({ version: TRANSFER_VERSION, settings, providers: { deepseek: { baseUrl: 'http://api.example.com', model: 'm' } } });
+  assert.deepEqual(parseTransferFile(wrongShape), { error: 'invalid-providers' });
+
+  const missingModel = JSON.stringify({ version: TRANSFER_VERSION, settings, providers: { deepseek: { baseUrl: 'https://api.deepseek.com' } } });
+  assert.deepEqual(parseTransferFile(missingModel), { error: 'invalid-providers' });
+
+  const notObject = JSON.stringify({ version: TRANSFER_VERSION, settings, providers: [] });
+  assert.deepEqual(parseTransferFile(notObject), { error: 'invalid-providers' });
+});
+
+test('没有 providers 段的旧文件仍可导入', () => {
+  const legacy = JSON.stringify({ version: TRANSFER_VERSION, settings });
+  const result = parseTransferFile(legacy);
+
+  assert.ok('file' in result);
+  assert.equal(result.file.providers, undefined);
+  assert.equal(result.file.defaultProvider, undefined);
 });
