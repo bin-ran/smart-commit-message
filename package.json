@@ -2,7 +2,7 @@
   "name": "smart-git-commit-message",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "publisher": "binran",
   "license": "MIT",
   "packageManager": "pnpm@12.14.0",
