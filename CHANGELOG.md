@@ -8,6 +8,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Added
 
+- Configuration panel (webview) with provider presets for DeepSeek, GLM, Qwen and MiMo, model list fetching, inline validation and a connection test
+- `GET /models` support and a connection probe that falls back to a minimal chat request
 - `smartCommitMessage.maxDiffChars` setting to control how much diff is sent to the AI service
 - `Set API Key` / `Clear API Key` commands
 - Unit tests and a GitHub Actions CI workflow

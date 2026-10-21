@@ -4,6 +4,7 @@
   "command.generate.title": "Generate Commit Message",
   "command.setApiKey.title": "Set API Key",
   "command.clearApiKey.title": "Clear API Key",
+  "command.openSettings.title": "Configure Model",
   "config.title": "Smart Commit Message",
   "config.apiKey.description": "Deprecated: the API key is now stored in VS Code SecretStorage",
   "config.apiKey.deprecation": "Set the API key with the \"Smart Commit Message: Set API Key\" command instead; this setting is only read once for migration.",

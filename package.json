@@ -32,7 +32,8 @@
   "activationEvents": [
     "onCommand:smartCommitMessage.generate",
     "onCommand:smartCommitMessage.setApiKey",
-    "onCommand:smartCommitMessage.clearApiKey"
+    "onCommand:smartCommitMessage.clearApiKey",
+    "onCommand:smartCommitMessage.openSettings"
   ],
   "capabilities": {
     "untrustedWorkspaces": {
@@ -54,6 +55,11 @@
       {
         "command": "smartCommitMessage.clearApiKey",
         "title": "%command.clearApiKey.title%"
+      },
+      {
+        "command": "smartCommitMessage.openSettings",
+        "title": "%command.openSettings.title%",
+        "icon": "$(gear)"
       }
     ],
     "menus": {
@@ -61,6 +67,11 @@
         {
           "command": "smartCommitMessage.generate",
           "group": "navigation@-10",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "smartCommitMessage.openSettings",
+          "group": "navigation@-11",
           "when": "scmProvider == git"
         }
       ]

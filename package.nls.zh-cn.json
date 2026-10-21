@@ -4,6 +4,7 @@
   "command.generate.title": "生成 Commit Message",
   "command.setApiKey.title": "设置 API Key",
   "command.clearApiKey.title": "清除 API Key",
+  "command.openSettings.title": "配置大模型",
   "config.title": "Smart Commit Message",
   "config.apiKey.description": "已弃用：API Key 改为保存在 VS Code SecretStorage 中",
   "config.apiKey.deprecation": "请改用命令「Smart Commit Message: 设置 API Key」；此配置仅在迁移时读取一次。",

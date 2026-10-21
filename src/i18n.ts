@@ -8,7 +8,7 @@ export const t = {
   apiKeyMissing: () => isChinese()
     ? 'Smart Commit Message：未配置 API Key，请点击下方按钮或运行命令「设置 API Key」配置。'
     : 'Smart Commit Message: API Key is not configured. Click the button below or run the "Set API Key" command.',
-  actionSetApiKey: () => isChinese() ? '设置 API Key' : 'Set API Key',
+  actionOpenSettings: () => isChinese() ? '打开配置' : 'Open settings',
   apiKeyPromptTitle: () => isChinese() ? 'Smart Commit Message：设置 API Key' : 'Smart Commit Message: Set API Key',
   apiKeyPromptPrompt: () => isChinese()
     ? 'API Key 会保存在 VS Code SecretStorage 中（不写入 settings.json）。'
@@ -75,7 +75,58 @@ export const t = {
     ? 'Smart Commit Message：Commit 信息已生成！'
     : 'Smart Commit Message: Commit message generated!',
   unknownError: () => isChinese() ? '未知错误' : 'Unknown error',
+  panelTitle: () => isChinese() ? '配置大模型' : 'Configure Model',
+  testSuccess: (elapsedMs: number, modelCount: number) => isChinese()
+    ? `连接成功 · ${elapsedMs} ms${modelCount > 0 ? ` · ${modelCount} 个模型` : ''}`
+    : `Connected · ${elapsedMs} ms${modelCount > 0 ? ` · ${modelCount} models` : ''}`,
+  modelsLoaded: (count: number) => isChinese() ? `已拉取 ${count} 个模型` : `Loaded ${count} models`,
+  modelsUnavailable: () => isChinese()
+    ? '该服务不支持模型列表接口，请手动填写模型名。'
+    : 'This service does not expose a model list; enter the model name manually.',
+  panelSaveFailed: (detail: string) => isChinese()
+    ? `配置未保存：${detail}`
+    : `Configuration was not saved: ${detail}`,
 };
+
+// 配置面板的界面文案，整体下发给 webview，避免在 HTML 里硬编码两份
+export function panelLabels(): Record<string, string> {
+  const zh = isChinese();
+  const pick = (zhText: string, enText: string) => (zh ? zhText : enText);
+
+  return {
+    providerTitle: pick('服务商', 'Provider'),
+    connectionTitle: pick('连接', 'Connection'),
+    generateTitle: pick('生成选项', 'Generation'),
+    baseUrl: 'Base URL',
+    baseUrlHint: pick('需使用 https（仅 localhost 可用 http）', 'Must use https (http only for localhost)'),
+    model: pick('模型', 'Model'),
+    modelHint: pick('可直接输入，或从拉取到的列表里选', 'Type a name or pick one from the fetched list'),
+    apiKey: 'API Key',
+    apiKeyPlaceholder: pick('留空表示不修改已保存的 Key', 'Leave empty to keep the saved key'),
+    apiKeySaved: pick('已保存在 VS Code SecretStorage', 'Saved in VS Code SecretStorage'),
+    apiKeyNotSet: pick('尚未设置', 'Not configured yet'),
+    clearKey: pick('清除', 'Clear'),
+    fetchModels: pick('拉取模型', 'Fetch models'),
+    fetching: pick('拉取中...', 'Fetching...'),
+    style: pick('风格', 'Style'),
+    styleConventional: 'conventional',
+    styleSimple: 'simple',
+    styleDetailed: 'detailed',
+    language: pick('语言', 'Language'),
+    languageAuto: pick('跟随界面', 'Follow UI'),
+    maxDiffChars: pick('diff 字符上限', 'Max diff characters'),
+    maxDiffCharsHint: pick('超出时从尾部按文件整段丢弃', 'Whole files are dropped from the end once this limit is exceeded'),
+    customPrompt: pick('自定义提示词', 'Custom prompt'),
+    customPromptPlaceholder: pick('选填，追加在风格模板之后', 'Optional, appended after the style template'),
+    test: pick('测试连接', 'Test connection'),
+    testing: pick('正在测试...', 'Testing...'),
+    save: pick('保存', 'Save'),
+    saving: pick('保存中...', 'Saving...'),
+    saved: pick('已保存', 'Saved'),
+    cancel: pick('关闭', 'Close'),
+    providerCustom: pick('自定义', 'Custom'),
+  };
+}
 
 export function inferLanguage(): string {
   return isChinese() ? 'Chinese' : 'English';

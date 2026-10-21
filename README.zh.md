@@ -12,7 +12,8 @@ AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的
 - **Source Control 集成** — 在 Git 面板直接点击 sparkle 按钮生成
 - **多种风格** — 支持 Conventional Commits、简洁模式、详细模式
 - **双语支持** — 生成语言可选中文或英文
-- **兼容多平台** — 支持 OpenAI 格式 API（DeepSeek、OpenAI 等）
+- **服务商预设** — 内置 DeepSeek、GLM、Qwen、MiMo，也可接入任意 OpenAI 兼容网关
+- **配置面板** — 一个面板搞定选服务商、拉取模型、填 Key、测连接
 - **自定义 Prompt** — 可追加自定义 System Prompt 控制生成行为
 
 ## 安装
@@ -26,6 +27,8 @@ AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的
 2. 打开 **Source Control** 面板（Ctrl+Shift+G）
 3. 点击工具栏的 sparkle 按钮，或按 `Ctrl+Shift+P` 输入 **"生成 Commit Message"**
 4. 生成的 Commit Message 会自动填入输入框
+
+点击 Source Control 标题栏的齿轮按钮（或运行 **"配置大模型"**）打开配置面板：选服务商预设 → 拉取可用模型 → 粘贴 API Key → **测试连接** → 保存。
 
 ## 配置项
 
@@ -49,8 +52,10 @@ API Key 通过命令面板运行 **「Smart Commit Message: 设置 API Key」** 
 ## 快速开始（DeepSeek）
 
 1. 前往 [DeepSeek 开放平台](https://platform.deepseek.com) 获取 API Key
-2. 在命令面板运行 **「Smart Commit Message: 设置 API Key」** 粘贴 Key
-3. 默认已配置 DeepSeek 的 baseUrl 和模型，直接点击 sparkle 按钮即可使用
+2. 运行 **「配置大模型」**，保持 DeepSeek 预设并粘贴 Key
+3. 在 Source Control 面板点击 sparkle 按钮
+
+其他预设：GLM（`https://open.bigmodel.cn/api/paas/v4`）、Qwen（`https://dashscope.aliyuncs.com/compatible-mode/v1`）、MiMo（`https://api.xiaomimimo.com/v1`）。其他 OpenAI 兼容网关选 **自定义**。
 
 ## 说明
 

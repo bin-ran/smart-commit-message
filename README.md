@@ -12,7 +12,8 @@ AI-powered VS Code extension that automatically analyzes Git code changes and ge
 - **Source Control Integration** — Click the sparkle button directly in the Git panel
 - **Multiple Styles** — Supports Conventional Commits, Simple, and Detailed modes
 - **Bilingual Support** — Choose between Chinese or English for generated messages
-- **Multi-Platform Compatible** — Supports OpenAI-format APIs (DeepSeek, OpenAI, etc.)
+- **Provider Presets** — Built-in presets for DeepSeek, GLM, Qwen and MiMo, plus any OpenAI-compatible endpoint
+- **Configuration Panel** — One panel to pick a provider, fetch models, set the API key and test the connection
 - **Custom Prompt** — Append custom system prompts to control generation behavior
 
 ## Installation
@@ -26,6 +27,8 @@ AI-powered VS Code extension that automatically analyzes Git code changes and ge
 2. Open the **Source Control** panel (Ctrl+Shift+G)
 3. Click the sparkle button in the toolbar, or press `Ctrl+Shift+P` and type **"Generate Commit Message"**
 4. The generated commit message will be automatically filled into the input box
+
+Click the gear button in the Source Control title bar (or run **"Configure Model"**) to open the configuration panel: pick a provider preset, fetch the available models, paste your API key, then use **Test connection** before saving.
 
 ## Configuration
 
@@ -49,8 +52,10 @@ Use `Smart Commit Message: Clear API Key` to remove the stored key.
 ## Quick Start (DeepSeek)
 
 1. Get your API Key from the [DeepSeek Platform](https://platform.deepseek.com)
-2. Run `Smart Commit Message: Set API Key` from the Command Palette and paste the key
-3. DeepSeek's baseUrl and model are pre-configured by default — just click the sparkle button to use
+2. Run **"Configure Model"**, keep the DeepSeek preset and paste the key
+3. Click the sparkle button in the Source Control panel
+
+Other presets: GLM (`https://open.bigmodel.cn/api/paas/v4`), Qwen (`https://dashscope.aliyuncs.com/compatible-mode/v1`), MiMo (`https://api.xiaomimimo.com/v1`). Choose **Custom** for any other OpenAI-compatible gateway.
 
 ## Notes
 

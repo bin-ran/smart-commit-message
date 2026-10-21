@@ -6,6 +6,13 @@ import { checkBaseUrl } from './url';
 export const API_KEY_SECRET = 'smartCommitMessage.apiKey';
 const LEGACY_API_KEY_SETTING = 'apiKey';
 
+export const CONFIG_DEFAULTS = {
+  baseUrl: 'https://api.deepseek.com',
+  model: 'deepseek-v4-flash',
+  style: 'conventional' as const,
+  maxDiffChars: DEFAULT_MAX_DIFF_CHARS,
+};
+
 export interface Config {
   apiKey: string;
   baseUrl: string;
@@ -72,12 +79,12 @@ export function getConfig(apiKey: string): Config {
   const config = vscode.workspace.getConfiguration('smartCommitMessage');
   return {
     apiKey,
-    baseUrl: config.get<string>('baseUrl', 'https://api.deepseek.com'),
-    model: config.get<string>('model', 'deepseek-v4-flash'),
-    style: config.get<'conventional' | 'simple' | 'detailed'>('style', 'conventional'),
+    baseUrl: config.get<string>('baseUrl', CONFIG_DEFAULTS.baseUrl),
+    model: config.get<string>('model', CONFIG_DEFAULTS.model),
+    style: config.get<'conventional' | 'simple' | 'detailed'>('style', CONFIG_DEFAULTS.style),
     language: config.get<string>('language', inferLanguage()),
     customPrompt: config.get<string>('customPrompt', ''),
-    maxDiffChars: config.get<number>('maxDiffChars', DEFAULT_MAX_DIFF_CHARS),
+    maxDiffChars: config.get<number>('maxDiffChars', CONFIG_DEFAULTS.maxDiffChars),
   };
 }
 

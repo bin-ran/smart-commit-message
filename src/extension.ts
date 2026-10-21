@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { clearApiKey, getApiKey, getConfig, promptForApiKey, validateConfig } from './config';
-import { getDiff, GitError, truncateDiff } from './git';
+import { getDiff, truncateDiff } from './git';
 import { ApiError, generateCommitMessage } from './ai';
+import { describeError } from './errors';
+import { openSettingsPanel } from './panel';
 import { t } from './i18n';
 
 interface GitRepository {
@@ -34,48 +36,18 @@ function getTargetRepository(git: GitApi, ctx?: { rootUri?: vscode.Uri }): GitRe
   return git.repositories[0];
 }
 
-function toErrorText(err: unknown): string {
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return typeof err === 'string' ? err : t.unknownError();
-}
-
 // 生成会直接覆盖输入框内容，已有草稿时先确认，避免用户手写的内容丢掉
 async function confirmOverwriteDraft(): Promise<boolean> {
   const action = await vscode.window.showWarningMessage(t.confirmOverwrite(), { modal: true }, t.actionOverwrite());
   return action === t.actionOverwrite();
 }
 
-function describeError(err: unknown): string {
-  if (err instanceof GitError) {
-    return t.gitFailed(err.detail);
-  }
-  if (err instanceof ApiError) {
-    switch (err.kind) {
-      case 'timeout':
-        return t.requestTimeout();
-      case 'http':
-        return t.requestFailed(err.detail);
-      case 'invalid-response':
-        return t.invalidResponse();
-      case 'empty-response':
-        return t.emptyResponse();
-      case 'cancelled':
-        return t.generationCancelled();
-      default:
-        return t.networkFailed(err.detail);
-    }
-  }
-  return toErrorText(err);
-}
-
 async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vscode.Uri }): Promise<void> {
   const apiKey = await getApiKey(context);
   if (!apiKey) {
-    const action = await vscode.window.showErrorMessage(t.apiKeyMissing(), t.actionSetApiKey());
-    if (action === t.actionSetApiKey()) {
-      await promptForApiKey(context);
+    const action = await vscode.window.showErrorMessage(t.apiKeyMissing(), t.actionOpenSettings());
+    if (action === t.actionOpenSettings()) {
+      openSettingsPanel(context);
     }
     return;
   }
@@ -148,7 +120,8 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('smartCommitMessage.generate', (ctx?: { rootUri?: vscode.Uri }) => generate(context, ctx)),
     vscode.commands.registerCommand('smartCommitMessage.setApiKey', () => promptForApiKey(context)),
-    vscode.commands.registerCommand('smartCommitMessage.clearApiKey', () => clearApiKey(context))
+    vscode.commands.registerCommand('smartCommitMessage.clearApiKey', () => clearApiKey(context)),
+    vscode.commands.registerCommand('smartCommitMessage.openSettings', () => openSettingsPanel(context))
   );
 }
 
