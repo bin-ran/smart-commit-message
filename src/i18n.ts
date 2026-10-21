@@ -16,6 +16,12 @@ export const t = {
   apiKeyEmpty: () => isChinese() ? 'API Key 不能为空' : 'API Key cannot be empty',
   apiKeySaved: () => isChinese() ? 'Smart Commit Message：API Key 已保存。' : 'Smart Commit Message: API Key saved.',
   apiKeyCleared: () => isChinese() ? 'Smart Commit Message：已清除本地保存的 API Key。' : 'Smart Commit Message: Stored API key cleared.',
+  apiKeyClearedForProvider: () => isChinese()
+    ? 'Smart Commit Message：已清除该服务商的 API Key。'
+    : 'Smart Commit Message: API key cleared for this provider.',
+  savedAsDefault: () => isChinese()
+    ? '已保存，生成时将使用该服务商'
+    : 'Saved; this provider is now used for generation',
   apiKeyMigrated: () => isChinese()
     ? 'Smart Commit Message：已将 settings.json 中的 API Key 迁移到 SecretStorage。'
     : 'Smart Commit Message: API key moved from settings.json to SecretStorage.',
@@ -125,6 +131,13 @@ export function panelLabels(): Record<string, string> {
     saved: pick('已保存', 'Saved'),
     cancel: pick('关闭', 'Close'),
     providerCustom: pick('自定义', 'Custom'),
+    providerHint: pick(
+      '★ 生成时使用的服务商 · ● 已保存 API Key · 每个服务商各自保存 Key',
+      '★ provider used for generation · ● API key saved · keys are stored per provider'
+    ),
+    saveAsDefault: pick('保存并设为默认', 'Save as default'),
+    keySavedForCurrent: pick('该地址已保存 Key', 'A key is saved for this endpoint'),
+    keyMissingForCurrent: pick('该地址尚未保存 Key', 'No key saved for this endpoint'),
   };
 }
 

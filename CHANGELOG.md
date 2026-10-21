@@ -16,7 +16,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Changed
 
-- The API key is now stored in VS Code SecretStorage; the `smartCommitMessage.apiKey` setting is deprecated and only read once for migration
+- API keys are stored per provider in VS Code SecretStorage (one slot per preset plus one per custom endpoint), and are migrated from the previous single key automatically
+- The configuration panel marks the default provider (`★`) and providers that already have a key (`●`)
 - `baseUrl` and `model` are machine-scoped settings, so a workspace can no longer override them
 - Generation can be cancelled and times out after 60 seconds
 - The diff is read with `git diff HEAD`, so staged and unstaged changes are both included, and new untracked files are appended

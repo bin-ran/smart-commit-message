@@ -28,7 +28,7 @@ AI 驱动的 VS Code 插件，自动分析 Git 代码变更并生成高质量的
 3. 点击工具栏的 sparkle 按钮，或按 `Ctrl+Shift+P` 输入 **"生成 Commit Message"**
 4. 生成的 Commit Message 会自动填入输入框
 
-点击 Source Control 标题栏的齿轮按钮（或运行 **"配置大模型"**）打开配置面板：选服务商预设 → 拉取可用模型 → 粘贴 API Key → **测试连接** → 保存。
+点击 Source Control 标题栏的齿轮按钮（或运行 **"配置大模型"**）打开配置面板：选服务商预设 → 拉取可用模型 → 粘贴 API Key → **测试连接** → 保存。`★` 表示生成时使用的服务商（保存即设为默认），`●` 表示该服务商已保存 Key。
 
 ## 配置项
 
@@ -45,7 +45,7 @@ API Key 通过命令面板运行 **「Smart Commit Message: 设置 API Key」** 
 | `smartCommitMessage.customPrompt` | 追加在风格模板后的自定义 System Prompt | - |
 | `smartCommitMessage.apiKey` | 已弃用——仅在迁移时读取一次 | - |
 
-运行 **「Smart Commit Message: 清除 API Key」** 可删除已保存的 Key。
+API Key 按服务商分别保存在 VS Code SecretStorage 中（DeepSeek / GLM / Qwen / MiMo，以及每个自定义地址一个槽位），切换服务商不需要重新输入。运行 **「Smart Commit Message: 清除 API Key」** 只清除当前配置服务商的 Key。
 
 `baseUrl` 与 `model` 为 machine 级配置，工作区无法覆盖，避免仓库把请求（连同 API Key）指向别处。
 

@@ -33,3 +33,11 @@ test('renderPanelHtml 不在 HTML 里硬编码可变文案', () => {
   const html = renderPanelHtml(fakeWebview());
   assert.ok(!html.includes('https://api.deepseek.com'), 'provider base urls should come from host via postMessage');
 });
+
+test('renderPanelHtml 产出的 webview 脚本语法有效', () => {
+  const html = renderPanelHtml(fakeWebview());
+  const script = html.match(/<script nonce="[^"]+">([\s\S]*?)<\/script>/);
+  assert.ok(script, 'inline script not found');
+  // new Function 只做解析，不执行；能捕获模板字符串转义失真导致的语法错误
+  assert.doesNotThrow(() => new Function(script[1]));
+});

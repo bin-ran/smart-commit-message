@@ -28,7 +28,7 @@ AI-powered VS Code extension that automatically analyzes Git code changes and ge
 3. Click the sparkle button in the toolbar, or press `Ctrl+Shift+P` and type **"Generate Commit Message"**
 4. The generated commit message will be automatically filled into the input box
 
-Click the gear button in the Source Control title bar (or run **"Configure Model"**) to open the configuration panel: pick a provider preset, fetch the available models, paste your API key, then use **Test connection** before saving.
+Click the gear button in the Source Control title bar (or run **"Configure Model"**) to open the configuration panel: pick a provider preset, fetch the available models, paste your API key, then use **Test connection** before saving. `★` marks the provider used for generation (saving sets the default), `●` marks providers that already have a key.
 
 ## Configuration
 
@@ -45,7 +45,7 @@ Other settings can be searched in VS Code Settings:
 | `smartCommitMessage.customPrompt` | Custom system prompt appended after the style template | - |
 | `smartCommitMessage.apiKey` | Deprecated — only read once to migrate to SecretStorage | - |
 
-Use `Smart Commit Message: Clear API Key` to remove the stored key.
+API keys are stored per provider (DeepSeek / GLM / Qwen / MiMo, plus one slot per custom endpoint) in VS Code SecretStorage, so switching providers does not require re-entering keys. `Smart Commit Message: Clear API Key` clears the key of the currently configured provider.
 
 `baseUrl` and `model` are machine-scoped so a workspace can never redirect your requests (and your API key) to another endpoint.
 

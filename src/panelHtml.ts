@@ -52,6 +52,8 @@ const STYLES = `
   button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
   button:disabled { opacity: 0.55; cursor: default; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips-hint { margin: 8px 0 10px; }
+  .chip-mark { opacity: 0.75; margin-left: 6px; font-size: 11px; }
   .chips button { background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); }
   .chips button[aria-pressed="true"] { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
   .segmented { display: inline-flex; border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35)); border-radius: 4px; overflow: hidden; width: fit-content; }
@@ -73,6 +75,8 @@ const SCRIPT = `
   const vscode = acquireVsCodeApi();
   const labels = {};
   let providers = [];
+  let keySlots = [];
+  let defaultBaseUrl = '';
   let selectedProviderId = 'custom';
   let selectedStyle = 'conventional';
   let selectedLanguage = '';
@@ -102,19 +106,49 @@ const SCRIPT = `
     return preset.label;
   }
 
+  function normalizeBaseUrl(baseUrl) {
+    // 不用正则，避免模板字符串里反斜杠转义失真
+    let value = (baseUrl || '').trim().toLowerCase();
+    while (value.endsWith('/')) value = value.slice(0, -1);
+    return value;
+  }
+
+  function slotForPreset(preset) {
+    return preset.id === 'custom' ? null : preset.id;
+  }
+
+  function hasKeyForPreset(preset) {
+    const slot = slotForPreset(preset);
+    if (!slot) return false;
+    return keySlots.indexOf(slot) !== -1;
+  }
+
+  function isDefaultProvider(preset) {
+    if (!preset.baseUrl) return false;
+    return normalizeBaseUrl(preset.baseUrl) === normalizeBaseUrl(defaultBaseUrl);
+  }
+
   function renderProviders() {
     const container = byId('providers');
     container.textContent = '';
     providers.forEach((preset) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = providerLabel(preset);
+      button.textContent = (isDefaultProvider(preset) ? '★ ' : '') + providerLabel(preset);
+      if (hasKeyForPreset(preset)) {
+        const mark = document.createElement('span');
+        mark.className = 'chip-mark';
+        mark.textContent = '●';
+        mark.title = labels.apiKeySaved || '';
+        button.appendChild(mark);
+      }
       button.setAttribute('aria-pressed', String(preset.id === selectedProviderId));
       button.addEventListener('click', () => {
         selectedProviderId = preset.id;
         if (preset.baseUrl) byId('baseUrl').value = preset.baseUrl;
         if (preset.models.length > 0) byId('model').value = preset.models[0];
         renderProviders();
+        requestKeyState();
       });
       container.appendChild(button);
     });
@@ -165,6 +199,8 @@ const SCRIPT = `
   function render(state) {
     Object.assign(labels, state.labels || {});
     providers = state.providers || [];
+    keySlots = state.keySlots || [];
+    defaultBaseUrl = state.defaultBaseUrl || '';
     selectedProviderId = 'custom';
     providers.forEach((preset) => {
       if (preset.baseUrl && preset.baseUrl.toLowerCase() === (state.baseUrl || '').toLowerCase()) {
@@ -180,11 +216,21 @@ const SCRIPT = `
     byId('maxDiffChars').value = state.maxDiffChars;
     byId('customPrompt').value = state.customPrompt || '';
     byId('apiKey').value = '';
-    byId('keyState').textContent = state.hasApiKey ? (labels.apiKeySaved || '') : (labels.apiKeyNotSet || '');
+    setKeyState(state.baseUrl, state.hasApiKey);
 
     renderProviders();
     renderStyle();
     renderLanguage();
+  }
+
+  function setKeyState(baseUrl, hasKey) {
+    const text = hasKey ? (labels.keySavedForCurrent || '') : (labels.keyMissingForCurrent || '');
+    byId('keyState').textContent = text + (labels.apiKeyPlaceholder ? ' · ' + labels.apiKeyPlaceholder : '');
+    byId('clearKey').disabled = !hasKey;
+  }
+
+  function requestKeyState() {
+    post('keyState', { baseUrl: byId('baseUrl').value });
   }
 
   function collect() {
@@ -233,7 +279,8 @@ const SCRIPT = `
     withBusy(byId('save'), labels.saving || '', () => post('save', collect()));
   });
 
-  byId('clearKey').addEventListener('click', () => post('clearKey'));
+  byId('baseUrl').addEventListener('change', requestKeyState);
+  byId('clearKey').addEventListener('click', () => post('clearKey', { baseUrl: byId('baseUrl').value }));
   byId('cancel').addEventListener('click', () => post('close'));
 
   document.addEventListener('keydown', (event) => {
@@ -254,6 +301,10 @@ const SCRIPT = `
     if (message.type === 'testResult') {
       if (message.ok && message.models && message.models.length > 0) fillModels(message.models);
       setStatus(message.message, message.ok ? 'ok' : 'err');
+      return;
+    }
+    if (message.type === 'keyState') {
+      setKeyState(message.baseUrl, message.hasKey);
       return;
     }
     if (message.type === 'saved') {
@@ -285,7 +336,7 @@ export function renderPanelHtml(webview: vscode.Webview): string {
   <section class="card">
     <h2 data-i18n="providerTitle"></h2>
     <div class="chips" id="providers"></div>
-    <div>&nbsp;</div>
+    <p class="hint chips-hint" data-i18n="providerHint"></p>
   </section>
 
   <section class="card">
@@ -342,7 +393,7 @@ export function renderPanelHtml(webview: vscode.Webview): string {
     <span class="status" id="status"></span>
     <span class="spacer"></span>
     <button id="cancel" class="secondary" type="button" data-i18n="cancel"></button>
-    <button id="save" class="primary" type="button" data-i18n="save"></button>
+    <button id="save" class="primary" type="button" data-i18n="saveAsDefault"></button>
   </div>
 </footer>
 

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { clearApiKey, getApiKey, getConfig, promptForApiKey, validateConfig } from './config';
+import { getBaseUrl, getConfig, validateConfig } from './config';
+import { clearApiKey, getApiKeyFor, promptForApiKey } from './keys';
 import { getDiff, truncateDiff } from './git';
 import { ApiError, generateCommitMessage } from './ai';
 import { describeError } from './errors';
@@ -43,7 +44,8 @@ async function confirmOverwriteDraft(): Promise<boolean> {
 }
 
 async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vscode.Uri }): Promise<void> {
-  const apiKey = await getApiKey(context);
+  // Key 按服务商分槽，取当前配置的 baseUrl 对应槽位
+  const apiKey = await getApiKeyFor(context, getBaseUrl());
   if (!apiKey) {
     const action = await vscode.window.showErrorMessage(t.apiKeyMissing(), t.actionOpenSettings());
     if (action === t.actionOpenSettings()) {
@@ -119,8 +121,8 @@ async function generate(context: vscode.ExtensionContext, ctx?: { rootUri?: vsco
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('smartCommitMessage.generate', (ctx?: { rootUri?: vscode.Uri }) => generate(context, ctx)),
-    vscode.commands.registerCommand('smartCommitMessage.setApiKey', () => promptForApiKey(context)),
-    vscode.commands.registerCommand('smartCommitMessage.clearApiKey', () => clearApiKey(context)),
+    vscode.commands.registerCommand('smartCommitMessage.setApiKey', () => promptForApiKey(context, getBaseUrl())),
+    vscode.commands.registerCommand('smartCommitMessage.clearApiKey', () => clearApiKey(context, getBaseUrl())),
     vscode.commands.registerCommand('smartCommitMessage.openSettings', () => openSettingsPanel(context))
   );
 }

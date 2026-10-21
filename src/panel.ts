@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { listModels, probeConnection } from './ai';
-import { API_KEY_SECRET, CONFIG_DEFAULTS, getApiKey } from './config';
+import { CONFIG_DEFAULTS, getBaseUrl } from './config';
 import { describeError, toErrorText } from './errors';
 import { panelLabels, t } from './i18n';
+import { clearApiKeyFor, getApiKeyFor, hasApiKeyFor, listApiKeySlots, setApiKeyFor } from './keys';
 import { PROVIDER_PRESETS, type ProviderPreset } from './presets';
 import { checkBaseUrl } from './url';
 import { renderPanelHtml } from './panelHtml';
@@ -14,7 +15,9 @@ export interface PanelState {
   language: string;
   maxDiffChars: number;
   customPrompt: string;
+  defaultBaseUrl: string;
   hasApiKey: boolean;
+  keySlots: string[];
   providers: ProviderPreset[];
   labels: Record<string, string>;
 }
@@ -32,7 +35,8 @@ interface PanelDraft {
 type PanelMessage =
   | { type: 'ready' }
   | { type: 'save'; payload: PanelDraft }
-  | { type: 'clearKey' }
+  | { type: 'clearKey'; payload?: { baseUrl: string } }
+  | { type: 'keyState'; payload: { baseUrl: string } }
   | { type: 'fetchModels'; payload: { baseUrl: string; apiKey: string } }
   | { type: 'test'; payload: { baseUrl: string; model: string; apiKey: string } }
   | { type: 'close' };
@@ -42,16 +46,19 @@ let currentPanel: vscode.WebviewPanel | undefined;
 
 async function buildState(context: vscode.ExtensionContext): Promise<PanelState> {
   const configuration = vscode.workspace.getConfiguration(CONFIG_SECTION);
+  const baseUrl = configuration.get<string>('baseUrl', CONFIG_DEFAULTS.baseUrl);
 
   return {
-    baseUrl: configuration.get<string>('baseUrl', CONFIG_DEFAULTS.baseUrl),
+    baseUrl,
     model: configuration.get<string>('model', CONFIG_DEFAULTS.model),
     style: configuration.get<string>('style', CONFIG_DEFAULTS.style),
     // 未设置时跟随界面语言，面板里用空串表示“跟随界面”
     language: configuration.inspect<string>('language')?.globalValue ?? '',
     maxDiffChars: configuration.get<number>('maxDiffChars', CONFIG_DEFAULTS.maxDiffChars),
     customPrompt: configuration.get<string>('customPrompt', ''),
-    hasApiKey: (await getApiKey(context)).length > 0,
+    defaultBaseUrl: baseUrl,
+    hasApiKey: await hasApiKeyFor(context, baseUrl),
+    keySlots: await listApiKeySlots(context),
     providers: PROVIDER_PRESETS,
     labels: panelLabels(),
   };
@@ -88,6 +95,7 @@ async function saveDraft(context: vscode.ExtensionContext, draft: PanelDraft): P
   const configuration = vscode.workspace.getConfiguration(CONFIG_SECTION);
   const target = vscode.ConfigurationTarget.Global;
 
+  // baseUrl/model 写进配置即等于把当前服务商设为默认（生成时使用）
   await configuration.update('baseUrl', draft.baseUrl.trim(), target);
   await configuration.update('model', draft.model.trim(), target);
   await configuration.update('style', draft.style, target);
@@ -95,15 +103,13 @@ async function saveDraft(context: vscode.ExtensionContext, draft: PanelDraft): P
   await configuration.update('maxDiffChars', Math.round(draft.maxDiffChars), target);
   await configuration.update('customPrompt', draft.customPrompt.trim(), target);
 
-  // Key 只写 SecretStorage，配置文件里不留明文
-  if (draft.apiKey.trim()) {
-    await context.secrets.store(API_KEY_SECRET, draft.apiKey.trim());
-  }
+  // Key 只写进当前服务商的槽位，配置文件里不留明文
+  await setApiKeyFor(context, draft.baseUrl.trim(), draft.apiKey);
   return undefined;
 }
 
-async function resolveApiKey(context: vscode.ExtensionContext, typed: string): Promise<string> {
-  return typed.trim() || getApiKey(context);
+async function resolveApiKey(context: vscode.ExtensionContext, baseUrl: string, typed: string): Promise<string> {
+  return typed.trim() || getApiKeyFor(context, baseUrl.trim());
 }
 
 async function handleMessage(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, message: PanelMessage): Promise<void> {
@@ -119,18 +125,30 @@ async function handleMessage(context: vscode.ExtensionContext, panel: vscode.Web
         return;
       }
       await pushState(context, panel);
-      postToPanel(panel, { type: 'saved' });
+      postToPanel(panel, { type: 'saved', message: t.savedAsDefault() });
       return;
     }
 
-    case 'clearKey':
-      await context.secrets.delete(API_KEY_SECRET);
-      await pushState(context, panel);
-      postToPanel(panel, { type: 'saved', message: t.apiKeyCleared() });
+    case 'keyState': {
+      const baseUrl = message.payload.baseUrl.trim();
+      postToPanel(panel, {
+        type: 'keyState',
+        baseUrl,
+        hasKey: baseUrl ? await hasApiKeyFor(context, baseUrl) : false,
+      });
       return;
+    }
+
+    case 'clearKey': {
+      const baseUrl = (message.payload?.baseUrl ?? getBaseUrl()).trim();
+      await clearApiKeyFor(context, baseUrl);
+      await pushState(context, panel);
+      postToPanel(panel, { type: 'saved', message: t.apiKeyClearedForProvider() });
+      return;
+    }
 
     case 'fetchModels': {
-      const apiKey = await resolveApiKey(context, message.payload.apiKey);
+      const apiKey = await resolveApiKey(context, message.payload.baseUrl, message.payload.apiKey);
       if (!apiKey) {
         postToPanel(panel, { type: 'error', message: t.apiKeyMissing() });
         return;
@@ -145,22 +163,22 @@ async function handleMessage(context: vscode.ExtensionContext, panel: vscode.Web
     }
 
     case 'test': {
-      const apiKey = await resolveApiKey(context, message.payload.apiKey);
+      const apiKey = await resolveApiKey(context, message.payload.baseUrl, message.payload.apiKey);
       if (!apiKey) {
         postToPanel(panel, { type: 'testResult', ok: false, message: t.apiKeyMissing() });
         return;
       }
-      const target = {
-        baseUrl: message.payload.baseUrl.trim(),
-        model: message.payload.model.trim(),
-        apiKey,
-      };
       try {
-        const result = await probeConnection(target, { timeoutMs: 20_000 });
-        const message = result.viaModelsApi
-          ? t.testSuccess(result.elapsedMs, result.models.length)
-          : t.testSuccess(result.elapsedMs, 0);
-        postToPanel(panel, { type: 'testResult', ok: true, message, models: result.models });
+        const result = await probeConnection(
+          { baseUrl: message.payload.baseUrl.trim(), model: message.payload.model.trim(), apiKey },
+          { timeoutMs: 20_000 }
+        );
+        postToPanel(panel, {
+          type: 'testResult',
+          ok: true,
+          message: t.testSuccess(result.elapsedMs, result.models.length),
+          models: result.models,
+        });
       } catch (err) {
         postToPanel(panel, { type: 'testResult', ok: false, message: describeError(err) });
       }
@@ -172,7 +190,7 @@ async function handleMessage(context: vscode.ExtensionContext, panel: vscode.Web
       return;
 
     default:
-      postToPanel(panel, { type: 'error', message: toErrorText(new Error(`unknown message: ${String((message as { type?: string }).type)}`)) });
+      postToPanel(panel, { type: 'error', message: toErrorText(new Error('unknown panel message')) });
   }
 }
 

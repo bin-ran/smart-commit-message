@@ -44,6 +44,22 @@ function normalizeUrl(url: string): string {
   return url.trim().replace(/\/+$/, '').toLowerCase();
 }
 
+// 用作 Key 槽位与默认值比对：去掉协议差异、大小写与结尾斜杠，保留 host + path
+export function normalizeBaseUrl(baseUrl: string): string {
+  try {
+    const url = new URL(baseUrl.trim());
+    return `${url.host}${url.pathname}`.replace(/\/+$/, '').toLowerCase();
+  } catch {
+    return normalizeUrl(baseUrl);
+  }
+}
+
+// 每个服务商一个 Key 槽位；自定义网关按 host+path 区分，多个自建网关互不覆盖
+export function keySlotForBaseUrl(baseUrl: string, presets: ProviderPreset[] = PROVIDER_PRESETS): string {
+  const preset = findProviderByBaseUrl(baseUrl, presets);
+  return preset.id === CUSTOM_PROVIDER_ID ? `custom:${normalizeBaseUrl(baseUrl)}` : preset.id;
+}
+
 // 用当前 baseUrl 反查预设，用于面板初始选中态；对不上就落到“自定义”
 export function findProviderByBaseUrl(baseUrl: string, presets: ProviderPreset[] = PROVIDER_PRESETS): ProviderPreset {
   const normalized = normalizeUrl(baseUrl);
