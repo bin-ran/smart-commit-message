@@ -29,6 +29,9 @@ export const t = {
   noGitRepo: () => isChinese()
     ? 'Smart Commit Message：未找到 Git 仓库。'
     : 'Smart Commit Message: No git repository found.',
+  gitFailed: (detail: string) => isChinese()
+    ? `Smart Commit Message：读取 Git 改动失败。${detail}`
+    : `Smart Commit Message: Failed to read git changes. ${detail}`,
   success: () => isChinese()
     ? 'Smart Commit Message：Commit 信息已生成！'
     : 'Smart Commit Message: Commit message generated!',

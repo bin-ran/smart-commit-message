@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getConfig, validateConfig } from './config';
-import { getDiff, truncateDiff } from './git';
+import { getDiff, GitError, truncateDiff } from './git';
 import { generateCommitMessage } from './ai';
 import { t } from './i18n';
 
@@ -34,52 +34,60 @@ function getTargetRepository(git: GitApi, ctx?: { rootUri?: vscode.Uri }): GitRe
   return git.repositories[0];
 }
 
+function toErrorText(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return typeof err === 'string' ? err : t.unknownError();
+}
+
+async function generate(ctx?: { rootUri?: vscode.Uri }): Promise<void> {
+  const cfg = getConfig();
+  const error = validateConfig(cfg);
+  if (error) {
+    vscode.window.showErrorMessage(error);
+    return;
+  }
+
+  const gitExtension = vscode.extensions.getExtension('vscode.git');
+  if (!gitExtension) {
+    vscode.window.showErrorMessage(t.noGitExtension());
+    return;
+  }
+
+  try {
+    const git = gitExtension.exports.getAPI(1) as GitApi;
+    const repo = getTargetRepository(git, ctx);
+    if (!repo) {
+      vscode.window.showErrorMessage(t.noGitRepo());
+      return;
+    }
+
+    const diff = await getDiff(repo.rootUri.fsPath);
+    if (!diff) {
+      vscode.window.showInformationMessage(t.noChanges());
+      return;
+    }
+
+    const message = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: t.generating(),
+        cancellable: false,
+      },
+      () => generateCommitMessage(truncateDiff(diff), cfg)
+    );
+
+    repo.inputBox.value = message;
+    vscode.window.showInformationMessage(t.success());
+  } catch (err) {
+    const detail = err instanceof GitError ? t.gitFailed(err.detail) : toErrorText(err);
+    vscode.window.showErrorMessage(`Smart Commit Message: ${detail}`);
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('smartCommitMessage.generate', async (ctx?: { rootUri?: vscode.Uri }) => {
-    const cfg = getConfig();
-    const error = validateConfig(cfg);
-    if (error) {
-      vscode.window.showErrorMessage(error);
-      return;
-    }
-
-    const gitExtension = vscode.extensions.getExtension('vscode.git');
-    if (!gitExtension) {
-      vscode.window.showErrorMessage(t.noGitExtension());
-      return;
-    }
-
-    try {
-      const git = gitExtension.exports.getAPI(1) as GitApi;
-      const repo = getTargetRepository(git, ctx);
-      if (!repo) {
-        vscode.window.showErrorMessage(t.noGitRepo());
-        return;
-      }
-
-      const diff = getDiff(repo.rootUri.fsPath);
-      if (!diff) {
-        vscode.window.showInformationMessage(t.noChanges());
-        return;
-      }
-
-      const truncatedDiff = truncateDiff(diff);
-
-      const message = await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: t.generating(),
-          cancellable: false,
-        },
-        () => generateCommitMessage(truncatedDiff, cfg)
-      );
-
-      repo.inputBox.value = message;
-      vscode.window.showInformationMessage(t.success());
-    } catch (err: any) {
-      vscode.window.showErrorMessage(`Smart Commit Message: ${err.message || t.unknownError()}`);
-    }
-  });
+  const disposable = vscode.commands.registerCommand('smartCommitMessage.generate', (ctx?: { rootUri?: vscode.Uri }) => generate(ctx));
 
   context.subscriptions.push(disposable);
 }
