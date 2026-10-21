@@ -41,3 +41,23 @@ test('renderPanelHtml 产出的 webview 脚本语法有效', () => {
   // new Function 只做解析，不执行；能捕获模板字符串转义失真导致的语法错误
   assert.doesNotThrow(() => new Function(script[1]));
 });
+
+test('模型列表使用可滚动的自定义下拉，而不是 datalist', () => {
+  const html = renderPanelHtml(fakeWebview());
+
+  assert.ok(!/<datalist/i.test(html), 'datalist 无法保证滚动，不应再使用');
+  assert.ok(html.includes('id="modelList"'));
+  assert.ok(html.includes('role="listbox"'));
+  assert.match(html, /max-height: 240px;\s*overflow-y: auto/);
+  assert.ok(html.includes('::-webkit-scrollbar'));
+});
+
+test('模型下拉支持键盘与滚动定位', () => {
+  const html = renderPanelHtml(fakeWebview());
+  const script = html.match(/<script nonce="[^"]+">([\s\S]*?)<\/script>/);
+
+  assert.ok(script);
+  for (const token of ['ArrowDown', 'ArrowUp', 'scrollIntoView', 'activeModelIndex', 'selectModel']) {
+    assert.ok(script[1].includes(token), `webview 脚本缺少 ${token}`);
+  }
+});

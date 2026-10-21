@@ -53,6 +53,29 @@ const STYLES = `
   button:disabled { opacity: 0.55; cursor: default; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chips-hint { margin: 8px 0 10px; }
+  .combo { position: relative; flex: 1; }
+  .combo > input { width: 100%; }
+  .listbox {
+    position: absolute; z-index: 20; left: 0; right: 0; top: 100%; margin: 4px 0 0;
+    padding: 4px 0; list-style: none; box-sizing: border-box;
+    max-height: 240px; overflow-y: auto; overflow-x: hidden;
+    background: var(--vscode-dropdown-background, var(--vscode-input-background));
+    border: 1px solid var(--vscode-dropdown-border, var(--vscode-panel-border, rgba(128, 128, 128, 0.35)));
+    border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  }
+  .listbox[hidden] { display: none; }
+  .listbox li {
+    padding: 4px 10px; cursor: pointer; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .listbox li[aria-selected="true"] {
+    background: var(--vscode-list-activeSelectionBackground, rgba(128, 128, 128, 0.3));
+    color: var(--vscode-list-activeSelectionForeground, inherit);
+  }
+  .listbox::-webkit-scrollbar { width: 10px; }
+  .listbox::-webkit-scrollbar-thumb {
+    background: var(--vscode-scrollbarSlider-background); border-radius: 5px;
+  }
   .chip-mark { opacity: 0.75; margin-left: 6px; font-size: 11px; }
   .chips button { background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); }
   .chips button[aria-pressed="true"] { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
@@ -77,6 +100,8 @@ const SCRIPT = `
   let providers = [];
   let keySlots = [];
   let providerConfigs = {};
+  let modelOptions = [];
+  let activeModelIndex = -1;
   let defaultBaseUrl = '';
   let selectedProviderId = 'custom';
   let selectedStyle = 'conventional';
@@ -206,14 +231,67 @@ const SCRIPT = `
     ], selectedLanguage, (value) => { selectedLanguage = value; });
   }
 
-  function fillModels(models) {
-    const list = byId('modelOptions');
+  function filteredModels() {
+    const query = byId('model').value.trim().toLowerCase();
+    if (!query) return modelOptions;
+    return modelOptions.filter((model) => model.toLowerCase().indexOf(query) !== -1);
+  }
+
+  function renderModelList() {
+    const list = byId('modelList');
+    const items = filteredModels();
     list.textContent = '';
-    models.forEach((model) => {
-      const option = document.createElement('option');
-      option.value = model;
-      list.appendChild(option);
+    activeModelIndex = items.length > 0 ? 0 : -1;
+
+    items.forEach((model, index) => {
+      const item = document.createElement('li');
+      item.textContent = model;
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(index === activeModelIndex));
+      // mousedown 先于 blur，避免输入框失焦导致点击落空
+      item.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+        selectModel(model);
+      });
+      list.appendChild(item);
     });
+
+    list.hidden = items.length === 0;
+    byId('model').setAttribute('aria-expanded', String(!list.hidden));
+  }
+
+  function setModels(models) {
+    modelOptions = Array.isArray(models) ? models.slice() : [];
+    if (modelOptions.length === 0) {
+      closeModelList();
+      return;
+    }
+    renderModelList();
+  }
+
+  function closeModelList() {
+    byId('modelList').hidden = true;
+    byId('model').setAttribute('aria-expanded', 'false');
+  }
+
+  function selectModel(model) {
+    byId('model').value = model;
+    closeModelList();
+  }
+
+  function moveActiveModel(delta) {
+    const items = filteredModels();
+    if (items.length === 0) return;
+    activeModelIndex = (activeModelIndex + delta + items.length) % items.length;
+
+    const list = byId('modelList');
+    Array.prototype.forEach.call(list.children, (item, index) => {
+      item.setAttribute('aria-selected', String(index === activeModelIndex));
+    });
+    const active = list.children[activeModelIndex];
+    if (active && active.scrollIntoView) {
+      active.scrollIntoView({ block: 'nearest' });
+    }
   }
 
   function render(state) {
@@ -242,6 +320,7 @@ const SCRIPT = `
     renderProviders();
     renderStyle();
     renderLanguage();
+    closeModelList();
   }
 
   function setKeyState(baseUrl, hasKey) {
@@ -279,6 +358,49 @@ const SCRIPT = `
       }, 400);
     }
   }
+
+  byId('model').addEventListener('focus', () => {
+    if (modelOptions.length > 0) renderModelList();
+  });
+
+  byId('model').addEventListener('input', () => {
+    if (modelOptions.length > 0) renderModelList();
+  });
+
+  byId('model').addEventListener('keydown', (event) => {
+    const list = byId('modelList');
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (list.hidden) renderModelList();
+      moveActiveModel(1);
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveActiveModel(-1);
+      return;
+    }
+    if (event.key === 'Enter') {
+      const items = filteredModels();
+      if (!list.hidden && activeModelIndex >= 0 && items[activeModelIndex]) {
+        event.preventDefault();
+        selectModel(items[activeModelIndex]);
+      }
+      return;
+    }
+    if (event.key === 'Escape' && !list.hidden) {
+      // 先收起下拉，Escape 不再关闭整个面板
+      event.preventDefault();
+      event.stopPropagation();
+      closeModelList();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!byId('modelList').hidden && !event.target.closest('.combo')) {
+      closeModelList();
+    }
+  });
 
   byId('fetchModels').addEventListener('click', () => {
     setStatus(labels.fetching || '', '');
@@ -322,12 +444,12 @@ const SCRIPT = `
       return;
     }
     if (message.type === 'models') {
-      if (message.models && message.models.length > 0) fillModels(message.models);
+      if (message.models && message.models.length > 0) setModels(message.models);
       setStatus(message.message, message.models && message.models.length > 0 ? 'ok' : 'err');
       return;
     }
     if (message.type === 'testResult') {
-      if (message.ok && message.models && message.models.length > 0) fillModels(message.models);
+      if (message.ok && message.models && message.models.length > 0) setModels(message.models);
       setStatus(message.message, message.ok ? 'ok' : 'err');
       return;
     }
@@ -377,11 +499,13 @@ export function renderPanelHtml(webview: vscode.Webview): string {
     <label class="field">
       <span class="field-label" data-i18n="model"></span>
       <span class="row">
-        <input id="model" type="text" list="modelOptions" spellcheck="false" />
+        <span class="combo">
+          <input id="model" type="text" spellcheck="false" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="modelList" />
+          <ul class="listbox" id="modelList" role="listbox" hidden></ul>
+        </span>
         <button id="fetchModels" class="secondary" type="button" data-i18n="fetchModels"></button>
       </span>
       <span class="hint" data-i18n="modelHint"></span>
-      <datalist id="modelOptions"></datalist>
     </label>
     <label class="field">
       <span class="field-label" data-i18n="apiKey"></span>
