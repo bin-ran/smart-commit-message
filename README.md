@@ -44,7 +44,7 @@ Other settings can be searched in VS Code Settings:
 | `smartCommitMessage.model` | Fallback model name used before any provider is saved (machine scope) | `deepseek-flash` |
 | `smartCommitMessage.style` | Commit message style (conventional / simple / detailed) | `conventional` |
 | `smartCommitMessage.language` | Language for generated commits (English / Chinese), follows the VS Code display language when unset | - |
-| `smartCommitMessage.customPrompt` | Custom system prompt appended after the style template | - |
+| `smartCommitMessage.customPrompt` | Extra instructions appended after the built-in style template (the built-in rules still come first; the diff is treated as untrusted data) | - |
 | `smartCommitMessage.apiKey` | Deprecated — only read once to migrate to SecretStorage | - |
 
 API keys are stored per provider (DeepSeek / GLM / Qwen / MiMo, plus one slot per custom endpoint) in VS Code SecretStorage, so switching providers does not require re-entering keys. `Smart Commit Message: Clear API Key` clears the key of the currently configured provider.

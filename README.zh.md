@@ -44,7 +44,7 @@ API Key 通过命令面板运行 **「Smart Commit Message: 设置 API Key」** 
 | `smartCommitMessage.model` | 尚未保存任何服务商时的备用模型（machine 级） | `deepseek-flash` |
 | `smartCommitMessage.style` | Commit 信息风格（conventional / simple / detailed） | `conventional` |
 | `smartCommitMessage.language` | 生成 Commit 信息的语言（English / Chinese），未设置时跟随 VS Code 界面语言 | - |
-| `smartCommitMessage.customPrompt` | 追加在风格模板后的自定义 System Prompt | - |
+| `smartCommitMessage.customPrompt` | 追加在内置风格模板之后的自定义指令（内置规则仍在前，diff 按不可信数据处理） | - |
 | `smartCommitMessage.apiKey` | 已弃用——仅在迁移时读取一次 | - |
 
 API Key 按服务商分别保存在 VS Code SecretStorage 中（DeepSeek / GLM / Qwen / MiMo，以及每个自定义地址一个槽位），切换服务商不需要重新输入。运行 **「Smart Commit Message: 清除 API Key」** 只清除当前配置服务商的 Key。

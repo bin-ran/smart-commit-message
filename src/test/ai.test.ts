@@ -36,6 +36,7 @@ async function startServer(): Promise<TestServer> {
   let url = '';
 
   const server = createServer((request, response) => {
+    body = ''; // 同一测试里可能发多个请求，按请求重置
     const { scope, resource } = routeOf(request.url ?? '');
     url = request.url ?? '';
     request.on('data', (chunk) => {
@@ -61,6 +62,11 @@ async function startServer(): Promise<TestServer> {
       if (scope === 'not-json') {
         response.writeHead(200, { 'Content-Type': 'text/html' });
         response.end('<html>not json</html>');
+        return;
+      }
+      if (scope === 'fenced') {
+        const fenced = ['```markdown', 'feat: fenced', '```'].join(String.fromCharCode(10));
+        json({ choices: [{ message: { content: fenced } }] });
         return;
       }
       if (scope === 'empty') {
@@ -198,5 +204,49 @@ test('probeConnection 在 /models 返回 404 时退回 chat 请求', async () =>
     assert.deepEqual(result.models, []);
     assert.match(lastUrl(), /\/v1\/models-404\/chat\/completions$/);
     assert.equal(JSON.parse(lastBody()).model, 'fallback-model');
+  });
+});
+
+test('生成结果会剥掉代码围栏与前后空行', async () => {
+  await withServer(async ({ port }) => {
+    const message = await generateCommitMessage('diff', buildConfig(port, 'fenced'));
+    assert.equal(message, 'feat: fenced');
+  });
+});
+
+test('系统提示词声明 diff 为不可信数据并注入目标语言', async () => {
+  await withServer(async ({ port, lastBody }) => {
+    const cfg = { ...buildConfig(port), language: 'Chinese' };
+    await generateCommitMessage('diff', cfg);
+
+    const prompt = JSON.parse(lastBody()).messages[0].content as string;
+    assert.match(prompt, /UNTRUSTED DATA/);
+    assert.match(prompt, /Conventional Commits/);
+    assert.match(prompt, /truncation markers/);
+    assert.match(prompt, /written in Chinese/);
+    assert.match(prompt, /lowercase English and must not be translated/);
+  });
+});
+
+test('customPrompt 追加在系统提示词末尾', async () => {
+  await withServer(async ({ port, lastBody }) => {
+    const cfg = { ...buildConfig(port), customPrompt: 'Always mention the module name.' };
+    await generateCommitMessage('diff', cfg);
+
+    const prompt = JSON.parse(lastBody()).messages[0].content as string;
+    assert.ok(prompt.endsWith('Always mention the module name.'));
+  });
+});
+
+test('simple / detailed 风格使用各自的提示词', async () => {
+  await withServer(async ({ port, lastBody }) => {
+    await generateCommitMessage('diff', { ...buildConfig(port), style: 'simple' });
+    const simplePrompt = JSON.parse(lastBody()).messages[0].content as string;
+    assert.match(simplePrompt, /single sentence/);
+    assert.ok(!simplePrompt.includes('BREAKING CHANGE'));
+
+    await generateCommitMessage('diff', { ...buildConfig(port), style: 'detailed' });
+    const detailedPrompt = JSON.parse(lastBody()).messages[0].content as string;
+    assert.match(detailedPrompt, /2-5 bullet points/);
   });
 });

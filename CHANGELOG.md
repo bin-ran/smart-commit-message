@@ -22,6 +22,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - API keys are stored per provider in VS Code SecretStorage (one slot per preset plus one per custom endpoint), and are migrated from the previous single key automatically
 - The configuration panel marks the default provider (`★`) and providers that already have a key (`●`)
 - `baseUrl` and `model` are machine-scoped settings, so a workspace can no longer override them
+- Built-in prompts were rewritten: type/scope stay lowercase English while the description follows the target language, imperative mood and breaking-change guidance are explicit, the diff is declared untrusted data, and truncation markers are explained to the model
+- Model output is sanitized before it reaches the input box (code fences, surrounding quotes and "Here is ..." preambles are stripped)
 - Generation can be cancelled and times out after 60 seconds
 - The diff is read with `git diff HEAD`, so staged and unstaged changes are both included, and new untracked files are appended
 - Diff truncation now drops whole files instead of cutting hunks in half
