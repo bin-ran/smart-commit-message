@@ -103,7 +103,6 @@
             "English",
             "Chinese"
           ],
-          "default": "Chinese",
           "description": "%config.language.description%"
         },
         "smartCommitMessage.customPrompt": {

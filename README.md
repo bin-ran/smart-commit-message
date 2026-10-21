@@ -38,7 +38,7 @@ Other settings can be searched in VS Code Settings:
 | `smartCommitMessage.baseUrl` | OpenAI-compatible API base URL (machine scope, must be https unless localhost) | `https://api.deepseek.com` |
 | `smartCommitMessage.model` | Model name for commit generation (machine scope) | `deepseek-v4-flash` |
 | `smartCommitMessage.style` | Commit message style (conventional / simple / detailed) | `conventional` |
-| `smartCommitMessage.language` | Language for generated commits (English / Chinese) | `Chinese` |
+| `smartCommitMessage.language` | Language for generated commits (English / Chinese), follows the VS Code display language when unset | - |
 | `smartCommitMessage.customPrompt` | Custom system prompt appended after the style template | - |
 | `smartCommitMessage.apiKey` | Deprecated — only read once to migrate to SecretStorage | - |
 

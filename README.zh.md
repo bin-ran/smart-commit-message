@@ -38,7 +38,7 @@ API Key 通过命令面板运行 **「Smart Commit Message: 设置 API Key」** 
 | `smartCommitMessage.baseUrl` | OpenAI 兼容格式的 API 基础地址（machine 级，非 localhost 必须是 https） | `https://api.deepseek.com` |
 | `smartCommitMessage.model` | 用于生成 Commit 的模型名称（machine 级） | `deepseek-v4-flash` |
 | `smartCommitMessage.style` | Commit 信息风格（conventional / simple / detailed） | `conventional` |
-| `smartCommitMessage.language` | 生成 Commit 信息的语言（English / Chinese） | `Chinese` |
+| `smartCommitMessage.language` | 生成 Commit 信息的语言（English / Chinese），未设置时跟随 VS Code 界面语言 | - |
 | `smartCommitMessage.customPrompt` | 追加在风格模板后的自定义 System Prompt | - |
 | `smartCommitMessage.apiKey` | 已弃用——仅在迁移时读取一次 | - |
 

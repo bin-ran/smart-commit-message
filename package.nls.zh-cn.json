@@ -10,7 +10,7 @@
   "config.baseUrl.description": "OpenAI 兼容格式的 API 基础地址",
   "config.model.description": "用于生成 Commit 的模型名称",
   "config.style.description": "Commit 信息风格",
-  "config.language.description": "生成 Commit 信息的语言",
+  "config.language.description": "生成 Commit 信息的语言；未设置时跟随 VS Code 界面语言",
   "config.customPrompt.description": "追加在风格模板后的自定义 System Prompt",
   "config.maxDiffChars.description": "发送给 AI 的 diff 最大字符数，超出时从尾部按文件整段丢弃"
 }
