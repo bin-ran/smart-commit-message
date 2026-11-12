@@ -50,7 +50,7 @@ test('truncateDiff 在单个文件超预算时保留文件头并按行截断', (
   assert.ok(!truncated.includes('+line99'));
 });
 
-test('getDiff 同时包含已暂存与未暂存的改动', async () => {
+test('getDiff 暂存区有内容时只看暂存改动', async () => {
   const dir = createRepo();
   writeFileSync(path.join(dir, 'a.txt'), 'first\n');
   commitAll(dir);
@@ -61,7 +61,20 @@ test('getDiff 同时包含已暂存与未暂存的改动', async () => {
 
   const diff = await getDiff(dir);
   assert.ok(diff.includes('+second'));
-  assert.ok(diff.includes('+third'));
+  assert.ok(!diff.includes('+third'));
+});
+
+test('getDiff 没有暂存改动时纳入未暂存改动和未跟踪文件', async () => {
+  const dir = createRepo();
+  writeFileSync(path.join(dir, 'a.txt'), 'first\n');
+  commitAll(dir);
+
+  writeFileSync(path.join(dir, 'a.txt'), 'first\nunstaged\n');
+  writeFileSync(path.join(dir, 'brand-new.ts'), 'export const a = 1;\n');
+
+  const diff = await getDiff(dir);
+  assert.ok(diff.includes('+unstaged'));
+  assert.ok(diff.includes('diff --git a/brand-new.ts b/brand-new.ts'));
 });
 
 test('getDiff 纳入未跟踪的新文件', async () => {

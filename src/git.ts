@@ -37,8 +37,12 @@ async function hasHeadCommit(cwd: string): Promise<boolean> {
   }
 }
 
-// 优先用 git diff HEAD 拿到已暂存 + 未暂存的全部改动；仓库还没有提交时
-// HEAD 不存在，退化为只看暂存区。
+async function getStagedDiff(cwd: string): Promise<string> {
+  return execGit(cwd, ['diff', '--cached', '--no-color', '--find-renames']);
+}
+
+// 没有暂存改动时才退化为 git diff HEAD，拿已暂存 + 未暂存的全部改动；
+// 仓库还没有提交时 HEAD 不存在，再退化为只看暂存区（此时通常为空）。
 async function getTrackedDiff(cwd: string): Promise<string> {
   if (await hasHeadCommit(cwd)) {
     return execGit(cwd, ['diff', '--no-color', '--find-renames', 'HEAD']);
@@ -108,6 +112,12 @@ export async function getDiff(cwd: string): Promise<string> {
   // 预检：非仓库目录下 git diff 会退化成 --no-index 模式并吐一屏 usage，
   // 先用 rev-parse 拿到“not a git repository”这类清晰错误。
   await execGit(cwd, ['rev-parse', '--is-inside-work-tree']);
+
+  // 暂存区有内容时只以暂存内容为准，避免把未暂存改动混进提交信息
+  const stagedDiff = await getStagedDiff(cwd);
+  if (stagedDiff.trim()) {
+    return stagedDiff.trim();
+  }
 
   const trackedDiff = await getTrackedDiff(cwd);
   const untrackedDiff = await getUntrackedDiff(cwd);
